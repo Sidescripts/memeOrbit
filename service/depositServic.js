@@ -7,7 +7,7 @@ const createdeposit = async({userId, method, status, amount, euEquAmount, trxnId
         });
         return deposit;
     } catch (error) {
-        throw new Error("Error occurred", error.message)
+        throw new Error("Error occurred", error)
     }
 }
 
@@ -16,7 +16,7 @@ const findAllDeposit = async() =>{
         const deposit = await Deposit.findAll({});
         return deposit;
     } catch (error) {
-        throw new Error("Error occurred", error.message)
+        throw new Error("Error occurred", error)
     }
 }
 
@@ -26,16 +26,18 @@ const findDepositById = async({id}) =>{
         if(!deposit) throw new Error("Deposit not found");
         return deposit
     } catch (error) {
-        throw new Error("Error occurred", error.message)
+        throw new Error("Error occurred", error)
     }
 }
 
 const findAllDepositForUser = async({userId}) =>{
     try {
-        const deposit = await Deposit.findAll({where: {userId}});
+        // const deposit = await Deposit.findAll({where: {userId}});
+        const deposit = await Deposit.findAll({where: {userId:userId}});
         return deposit;
     } catch (error) {
-        throw new Error("Error occurred", error.message)
+        console.log(error)
+        throw new Error("Error occurred", error)
     }
 }
 

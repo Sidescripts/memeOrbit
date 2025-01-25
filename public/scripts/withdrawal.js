@@ -77,8 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if(await isAuthenticated()){
                 const accessToken = getCookie("accessToken");
-                const refreshToken = getCookie("refreshToken")
-
+                
                 try {
                     const response = await fetch(baseUrl+"request-withdrawal", {
                         method: 'POST',
@@ -86,7 +85,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         headers: {
                             'Content-Type': 'application/json',
                             'AccessToken': accessToken,
-                            'Refresh_Token': refreshToken,
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         credentials: "include",
@@ -127,8 +125,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const fetchWithdrawalHistory = async () => {
             
             if(await isAuthenticated()){
-                const accessToken = getCookie("accessToken")
-                const refreshToken = getCookie("refreshToken")
+                const accessToken = getCookie("accessToken");
+                
         
                 try {
                     // Show loading state
@@ -142,8 +140,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         mode: 'cors',
                         headers:{
                             'Content-Type': 'application/json',
-                            'AccessToken': accessToken,
-                            'Refresh_Token': refreshToken,
+                            'AccessToken': accessToken
+                            
                         },
                         credentials: 'include'
                     });

@@ -4,7 +4,7 @@ const {
     getAllDeposit,
     getOneDeposit
 } = require("../controllers/depositController");
-const { userAuthMiddleware, authMiddleware} = require("../middlewares/01-authMid");
+const { authMiddleware} = require("../middlewares/01-authMid");
 const router = express.Router();
 
 // withdrawal route

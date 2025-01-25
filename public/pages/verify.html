@@ -1,0 +1,64 @@
+<!-- verify.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Account</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .verification-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        .verification-container h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .verification-container p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #0c4d8a;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #174075;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="verification-container" id="verificationContainer">
+        <h2 id="statusTitle">Verifying...</h2>
+        <p id="statusMessage">Please wait while we verify your account.</p>
+        <button id="closeButton" style="display: none;" onclick="redirect()">Go to Login</button>
+    </div>
+
+    <script src="../scripts/verify.js"></script>
+</body>
+
+</html>

@@ -4,11 +4,14 @@ const nodemailer = require("nodemailer");
 const sendEmail = ({to,subject,html}) =>{
 
     const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
+        host: 'smtp.gmail.com',
+        port: 465,
+        service: 'gmail',
         auth: {
-            user: process.env.EMAIL_USERNAME,
-            pass: process.env.EMAIL_PASSWORD
+            user: "memeorbit80@gmail.com",
+            pass: "plqk pauc vcyi uvxh"
+            // user: process.env.EMAIL_USERNAME,
+            // pass: process.env.EMAIL_PASSWORD
         }
     });
 
@@ -21,12 +24,12 @@ const sendEmail = ({to,subject,html}) =>{
         html,
     } , (error, info) =>{
         if(error){
-            
-            return null;
+            console.log(error)
+            // return error;
             
         }else{
-            
-            return true
+            console.log("email sent:" + info)
+            // return true
         }
     });
 };

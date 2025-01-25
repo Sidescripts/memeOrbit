@@ -449,8 +449,7 @@
             
             if (await isAuthenticated()) {
                 const accessToken = getCookie("accessToken")
-                const refreshToken = getCookie("refreshToken")
-
+                
                 try {
 
                     const response = await fetch("/api/v1/user/dashboard", {
@@ -458,8 +457,8 @@
                         mode: 'cors',
                         headers: {
                             'Content-Type': 'application/json',
-                            'AccessToken': accessToken,
-                            'Refresh_Token': refreshToken,
+                            'AccessToken': accessToken
+                            
                         },
                         credentials: 'include',
                     });

@@ -41,7 +41,7 @@ async function resetFunc() {
     }
     btn.textContent = 'Please wait.....';
     btn.disabled = true;
-    console.log("bella")
+    
     try {
         const response = await fetch(baseUrl+'forgot-password',{
             method: 'POST',

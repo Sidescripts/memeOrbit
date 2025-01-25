@@ -1,4 +1,4 @@
-const baseUrl = "/api/v1/user/dashboard";
+const baseUrl = "/api/v1/m/dashboard";
 
 async function dashboard(){
     let walletBalI = document.getElementById("accBalance");
@@ -10,7 +10,7 @@ async function dashboard(){
 
     if(await isAuthenticated()){
         const accessToken = getCookie("accessToken")
-        const refreshToken = getCookie("refreshToken")
+        
         
         try {
             
@@ -19,16 +19,15 @@ async function dashboard(){
                 mode: 'cors',
                 headers:{
                     'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    'Refresh_Token': refreshToken,
+                    'AccessToken': accessToken
                 },
                 credentials: 'include',
             });
             
 
             const data = await response.json();
-            
-            if(response.status === 404){
+            console.log(data)
+            if(response.status === 401){
                 
                 redirectToLogin()
             }
@@ -38,7 +37,7 @@ async function dashboard(){
                     
                     redirectToLogin()
                 }
-                if(resp.statusCode === 404){
+                if(resp.statusCode === 401){
                     
                     redirectToLogin()
                 }

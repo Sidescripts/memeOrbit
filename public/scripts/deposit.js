@@ -25,8 +25,7 @@ async function btcDeposit(){
 
     if(await isAuthenticated()){
         const accessToken = getCookie("accessToken")
-        const refreshToken = getCookie("refreshToken")
-        
+                
         try {
             const storedMethod = localStorage.getItem("paymentMethod");
             const amt = localStorage.getItem("depositAmt");
@@ -49,8 +48,7 @@ async function btcDeposit(){
                 mode: 'cors',
                 headers:{
                     'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    'Refresh_Token': refreshToken,
+                    'AccessToken': accessToken
                 },
                 body: JSON.stringify(data),
                 credentials: 'include',
@@ -80,7 +78,6 @@ async function ethDeposit(){
 
     if(await isAuthenticated()){
         const accessToken = getCookie("accessToken")
-        const refreshToken = getCookie("refreshToken")
         
         try {
             const storedMethod = localStorage.getItem("paymentMethod");
@@ -104,8 +101,8 @@ async function ethDeposit(){
                 mode: 'cors',
                 headers:{
                     'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    'Refresh_Token': refreshToken,
+                    'AccessToken': accessToken
+                   
                 },
                 body: JSON.stringify(data),
                 credentials: 'include',
@@ -135,7 +132,6 @@ async function usdtDeposit(){
 
     if(await isAuthenticated()){
         const accessToken = getCookie("accessToken")
-        const refreshToken = getCookie("refreshToken")
         
         try {
             const storedMethod = localStorage.getItem("paymentMethod");
@@ -160,7 +156,7 @@ async function usdtDeposit(){
                 headers:{
                     'Content-Type': 'application/json',
                     'AccessToken': accessToken,
-                    'Refresh_Token': refreshToken,
+                    
                 },
                 body: JSON.stringify(data),
                 credentials: 'include',
@@ -192,7 +188,6 @@ async function completedDepositsHistory(){
     
     if(await isAuthenticated()){
         const accessToken = getCookie("accessToken")
-        const refreshToken = getCookie("refreshToken")
         
         try {
             
@@ -201,27 +196,12 @@ async function completedDepositsHistory(){
                 mode: 'cors',
                 headers:{
                     'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    'Refresh_Token': refreshToken,
+                    'AccessToken': accessToken
+                    
                 },
                 credentials: 'include'    
             });
-            // if(response.status === 404){
-                
-            //     redirectToLogin()
-            // }
-            // if(!response.ok){
-            //     const resp = await response.json();
-            //     if(resp.msg === "No user with such id"){
-                    
-            //         redirectToLogin()
-            //     }
-            //     if(resp.statusCode === 404){
-                    
-            //         redirectToLogin()
-            //     }
-                
-            // }
+            
             if(response.ok){
                 const data = await response.json();
                 const {
@@ -274,7 +254,7 @@ async function pendingDepositsHistory(){
     
     if(await isAuthenticated()){
         const accessToken = getCookie("accessToken")
-        const refreshToken = getCookie("refreshToken")
+        
         
         try {
             
@@ -283,27 +263,12 @@ async function pendingDepositsHistory(){
                 mode: 'cors',
                 headers:{
                     'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    'Refresh_Token': refreshToken,
+                    'AccessToken': accessToken
+                    
                 },
                 credentials: 'include'    
             });
-            // if(response.status === 404){
-                
-            //     redirectToLogin()
-            // }
-            // if(!response.ok){
-            //     const resp = await response.json();
-            //     if(resp.msg === "No user with such id"){
-                    
-            //         redirectToLogin()
-            //     }
-            //     if(resp.statusCode === 404){
-                    
-            //         redirectToLogin()
-            //     }
-                
-            // }
+            
             if(response.ok){
                 const data = await response.json();
                 const {
@@ -356,7 +321,6 @@ async function depositHistory(){
     
     if(await isAuthenticated()){
         const accessToken = getCookie("accessToken")
-        const refreshToken = getCookie("refreshToken")
         
         try {
             
@@ -365,27 +329,12 @@ async function depositHistory(){
                 mode: 'cors',
                 headers:{
                     'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    'Refresh_Token': refreshToken,
+                    'AccessToken': accessToken
+                    
                 },
                 credentials: 'include'    
             });
-            // if(response.status === 404){
-                
-            //     redirectToLogin()
-            // }
-            // if(!response.ok){
-            //     const resp = await response.json();
-            //     if(resp.msg === "No user with such id"){
-                    
-            //         redirectToLogin()
-            //     }
-            //     if(resp.statusCode === 404){
-                    
-            //         redirectToLogin()
-            //     }
-                
-            // }
+            
             if(response.ok){
                 const data = await response.json();
                 const {

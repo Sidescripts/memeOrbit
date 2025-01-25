@@ -43,9 +43,11 @@ const getConversionRate = async (method) => {
 
 const fundWallet = async (req, res) => {
     const { method, amount } = req.body;
-    const userId = req.user.id;
-    const user = await findUserById({userId})
+    const {userId} = req.user;
+    console.log(userId);
+
     try {
+        const user = await findUserById({userId});
         if(!user){
             return res.status(404).json({error: " User not found!"})
         }
@@ -71,7 +73,14 @@ const fundWallet = async (req, res) => {
         }
 
         const trxnId = `WD-${Date.now()}`;
-        const deposit = await createdeposit({userId, method, status:"pending", amount, euEquAmount, trxnId})
+        const deposit = await createdeposit({
+            userId, 
+            method, 
+            status:"pending", 
+            amount, 
+            euEquAmount:usdtEquivalentAmount, 
+            trxnId
+        });
 
         await sendDepositEmail({
             email: user.email,
@@ -98,16 +107,20 @@ const fundWallet = async (req, res) => {
 // deposit history
 async function getAllDeposit(req,res) {
     try {
-        const userId = req.user.id;
-        const deposit = findAllDepositForUser({userId});
+        const {userId} = req.user;
+        console.log(userId)
+    
+        const deposit = await findAllDepositForUser({userId});
 
         if(!deposit || deposit.length === 0){
+            console.log(deposit)
             return res.status(404).json({msg: "No deposit found"})
         }
+        console.log(deposit)
         res.status(200).json({deposit});
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error });
     }
 }
 

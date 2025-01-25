@@ -6,21 +6,31 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to fetch and populate table data
     async function loadTableData() {
         if(await isAuthenticated()){
+            const accessToken = getCookie("accessToken")
+
             try {
-                const response = await fetch(baseUrl + "/history")
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+                const response = await fetch(baseUrl + "/history", {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers:{
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken
+                    },
+                    credentials: 'include',
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-            const data = await response.json();
+                const data = await response.json();
 
-            // Clear existing rows
-            tableBody.innerHTML = "";
+                // Clear existing rows
+                tableBody.innerHTML = "";
 
-            // Populate table with fetched data
-            data.forEach(item => {
-                console.log(item)
-                const row = document.createElement("tr");
+                // Populate table with fetched data
+                data.forEach(item => {
+                    console.log(item)
+                    const row = document.createElement("tr");
 
                 row.innerHTML = `
                     <td>${item.investmentId}</td>
@@ -105,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if(await isAuthenticated()){
                 const accessToken = getCookie("accessToken");
-                const refreshToken = getCookie("refreshToken")
+                
 
                 try {
                     const response = await fetch(baseUrl+"request-withdrawal", {
@@ -114,7 +124,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         headers: {
                             'Content-Type': 'application/json',
                             'AccessToken': accessToken,
-                            'Refresh_Token': refreshToken,
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         credentials: "include",

@@ -84,9 +84,9 @@ async function login(req,res){
        return res.status(400).json({msg: `Invalid Credentials! Try again`});
     }
 
-    if(!user.isVerified){
-        return res.status(400).json({msg: "Verify your email address"});
-    }
+    // if(!user.isVerified){
+    //     return res.status(400).json({msg: "Verify your account address"});
+    // }
 
     
     const tokenUser = {

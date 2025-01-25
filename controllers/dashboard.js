@@ -9,8 +9,7 @@ const { Deposit } = require("../models");
  * @returns {Promise<Object>} - Dashboard data with updated totals.
  */
 const getAndUpdateDashboard = async (req, res) => {
-  const { userId } = req.params; // Extract userId from request parameters
-
+  const { userId } = req.user; // Extract userId from request parameters1
   try {
     // Fetch user data
     const user = await User.findByPk(userId, {
@@ -65,4 +64,13 @@ const getAndUpdateDashboard = async (req, res) => {
   }
 };
 
-module.exports = { getAndUpdateDashboard };
+async function testDashB(req,res){
+  console.log("test dashboard working")
+  console.log(req.user.userId)
+
+  return res.json({
+    msg: "It might just be working or not"
+  });
+}
+
+module.exports = { getAndUpdateDashboard, testDashB };

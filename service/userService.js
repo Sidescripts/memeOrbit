@@ -11,7 +11,7 @@ const { User } = require('../models');
 */
 
 
-const createUser = async ({ username, email, password,referralLink, country, verificationToken }) => {
+const createUser = async ({ username, email, password,country, verificationToken }) => {
     // Check if the user already exists
     const existingEmail = await User.findOne({ where: { email } });
     const existingUsername = await User.findOne({where: {username}})
@@ -52,8 +52,8 @@ const findUserByEmail = async({email}) =>{
 }
 
 const findUserById = async({userId}) =>{
-    const user = await User.findOne({where: {userId} });
-
+    const user = await User.findOne({userId});
+    console.log(user)
     if(!user){
         throw new Error("User not found!")
     }
