@@ -27,21 +27,9 @@ async function dashboard(){
 
             const data = await response.json();
             console.log(data)
-            if(response.status === 401){
-                
-                redirectToLogin()
-            }
+            
             if(!response.ok){
-                const resp = await response.json();
-                if(resp.msg === "No user with such id"){
-                    
-                    redirectToLogin()
-                }
-                if(resp.statusCode === 401){
-                    
-                    redirectToLogin()
-                }
-                
+                throw new Error("Request Error!") 
             }
             
             const {
@@ -52,12 +40,12 @@ async function dashboard(){
                 currentInvestment
             } = data.data;
  
-            walletBalI.textContent = walletBalance,
+    
             totalDepoI.textContent = totalDeposit,
             totalInvestI.textContent = totalInvestment,
             totalWithI.textContent = totalWithdrawal,
-            currentInvestI.textContent = currentInvestment
-            
+            currentInvestI.textContent = currentInvestment.amount,
+            walletBalI.textContent = walletBalance
             
 
         } catch (error) {

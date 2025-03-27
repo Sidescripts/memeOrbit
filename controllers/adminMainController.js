@@ -1,15 +1,9 @@
 const {User, Deposit, Withdrawal} = require("../models")
 
 const getAllUsers = async(req,res) =>{
-    const {email} = req.query;
-    const queryObject = {};
-    if(email){
-        queryObject.email = {$regex: email, $options:'i'}
-    }
-
-    let result = await User.find(queryObject).select('-password');;
-    const users = result;
-    return res.status(StatusCodes.OK).json({success:true, count: users.length, users})
+    // const users = await User.findAll({}).select('-password');
+    const users = await User.findAll({});
+    return res.status(200).json({success:true, count: users.length, users})
 }
 
 const allDeposit = async(req,res)=>{
@@ -24,11 +18,11 @@ const allDeposit = async(req,res)=>{
         queryObject.transaction_id = { $regex: transaction_id, $options: 'i' };
     }
 
-    let result = await Deposit.find(queryObject);
+    let result = await Deposit.findAll(queryObject);
 
     const deposit = result;
 
-    return res.status(StatusCodes.OK).json({success:true, count: deposit.length,deposit});
+    return res.status(200).json({success:true, count: deposit.length,deposit});
 }
 
 const allWithdrawal = async(req,res) =>{
@@ -42,9 +36,9 @@ const allWithdrawal = async(req,res) =>{
         queryObject.transaction_id = {$regex:transaction_id, $options: 'i'}
     }
 
-    let result = await Withdrawal.find(queryObject);
+    let result = await Withdrawal.findAll(queryObject);
     const withdrawal = result;
-    return res.status(StatusCodes.OK).json({success:true, withdrawal})
+    return res.status(200).json({success:true, withdrawal})
 }
 
 const approveWithdrawal = async(req,res)=>{
@@ -57,11 +51,11 @@ const approveWithdrawal = async(req,res)=>{
 
     await withdrawalApprove.save();
 
-    return res.status(StatusCodes.OK).json({success:true, withdrawalApprove});
+    return res.status(200).json({success:true, withdrawalApprove});
 }
 
 const approveDeposit = async(req,res) =>{
-
+    
     const {id:depositId} = req.params; 
     
     const depositAprrove = await Deposit.findOne({where:{id: depositId}});
@@ -72,25 +66,65 @@ const approveDeposit = async(req,res) =>{
     depositAprrove.status = "approved";
     await depositAprrove.save();
     
-    return res.status(StatusCodes.OK).json({success:true, msg: "Deposit successfully approved", depositAprrove})
+    return res.status(200).json({success:true, msg: "Deposit successfully approved", depositAprrove})
 }
 
-const addDeposit = async(req,res) =>{
-    const {id:userId} = req.params;
-    const {amount} = req.body;
-    if(!amount){
-        throw new Error("Amount must be provided!")
-    }
+const addDeposit = async (req, res) => {
+    try {
+        const { id: userId } = req.params;
+        const { amount } = req.body;
 
-    const user = await User.findOne({where:{id: userId}});
-    if(!user){
-        throw new Error("No user found")
-    }
-    user.walletBalance += amount;
+        const approvedAmount = parseFloat(amount);
+        console.log("Received amount:", approvedAmount);
 
-    await user.save();
-    return res.status(StatusCodes.OK).json({success:true, msg: "Deposit successfully made", user})
-}
+        // Validate amount
+        if (isNaN(approvedAmount) || approvedAmount <= 0) {
+            return res.status(400).json({ success: false, msg: "Invalid amount" });
+        }
+
+        // Find the user and ensure the latest balance is fetched
+        let user = await User.findOne({ where: { id: userId } });
+
+        if (!user) {
+            console.error("User not found for ID:", userId);
+            return res.status(404).json({ success: false, msg: "No user found" });
+        }
+
+        console.log("User found:", user.toJSON());
+
+        // Ensure walletBalance is defined
+        if (user.walletBalance == null) {
+            console.warn(`User ${userId} has no walletBalance, setting to 0.`);
+            user.walletBalance = 0;
+        }
+
+        console.log(`Current Wallet Balance: ${user.walletBalance}`);
+        console.log(`Adding Approved Amount: ${approvedAmount}`);
+
+        // ✅ Fix: Use Sequelize `.increment()` to properly add the amount
+        await user.increment("walletBalance", { by: approvedAmount });
+
+        // Reload user to get updated balance
+        await user.reload();
+
+        console.log(`Updated Wallet Balance: ${user.walletBalance}`);
+
+        return res.status(200).json({
+            success: true,
+            msg: "Deposit successfully made",
+            newBalance: user.walletBalance,
+        });
+
+    } catch (error) {
+        console.error("Error processing deposit:", error);
+        return res.status(500).json({
+            success: false,
+            msg: "Internal Server Error",
+            error: error.message,
+        });
+    }
+};
+
 
 module.exports = {
     getAllUsers,

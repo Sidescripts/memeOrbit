@@ -1,5 +1,7 @@
 const nodeCron = require("node-cron");
-const  {v4: uuidv4} = require("uuid") 
+const  {v4: uuidv4} = require("uuid");
+const  {User} = require('../models') 
+const  {Investment} = require('../models') 
 const {
     findAllInvestment,
     findInvestmentById,
@@ -16,59 +18,79 @@ const {findUserById} = require("../service/userService");
 
 // create innvestment
 async function createInvestment(req,res) {
-    const userId = req.user.id;
     const {plans, amount} = req.body;
-    const user = await findUserById({userId})
+    const {userId} = req.user;
 
-    if (!user) {
-        return res.status(404).json({ message: "User not found." });
-    }
+    try{
+        
+        const user =await User.findByPk(userId);
+        
+        // console.log(user);
+        if(!user){
+            // console.log("error")
+            return res.status(404).json({msg: "User Not Found!"})
+        }
 
-    if(!plans || !amount){
-        return res.status(400).json({ message: "Please provide the needed value(s)" });
-    }
+        if(!plans || !amount){
+            console.log("error")
+            return res.status(400).json({ message: "Please provide the needed value(s)" });
+        }
 
-    // Determine the duration based on the plan
-    let duration;
-    switch (plans.toLowerCase()) {
-      case "basic":
-        duration = 24; // 24 hours
-        break;
-      case "moon":
-        duration = 48; // 48 hours
-        break;
-      case "boom":
-        duration = 72; // 72 hours
-        break;
-      default:
-        return res.status(400).json({ message: "Invalid plan selected." });
-    }
+        // // Determine the duration based on the plan
+        let duration;
+        switch (plans.toLowerCase()) {
+            case "basic plan":
+                duration = 24; // 24 hours
+                break;
+            case "moon plan":
+                duration = 48; // 48 hours
+                break;
+            case "boom plan":
+                duration = 72; // 72 hours
+                break;
+            default:
+                return res.status(400).json({ message: "Invalid plan selected." });
+        }
+        console.log(duration)
+        
+        const investmentDate = new Date();
+        console.log(investmentDate)
+        
+        // // Deduct investment amount from walletBalance
+        if (amount > user.walletBalance) {
+            throw new Error("Insufficient Fund");
+        }
 
-    const investmentDate = new Date();
+        // await user.update({
+            // walletBalance: user.walletBalance - amount,
+            // totalInvestment: user.totalInvestment + amount,
+        // });
 
-    // Deduct investment amount from walletBalance
-    if (amount > user.walletBalance) {
-        throw new Error("Insufficient balance in wallet");
-    }
+        user.walletBalance -= amount,
+        user.totalInvestment += amount
 
-    await user.update({
-        walletBalance: user.walletBalance - amount,
-        totalInvestment: user.totalInvestment + amount,
-    });
+        await user.save();
+        
+        const i = await Investment.create({
+            userId: userId,
+            plans: plans,
+            amount:amount,
+            investmentId: uuidv4(),
+            investmentDate: investmentDate,
+            duration:duration,
+            returnOnInvestment: 0
+        });
+        console.log(i)
+        return res.status(201).json({successs:true, msg: "success!", i})
 
-    await user.save();
+            
+    } catch (error) {
+        console.log(error)
+    }    
+    
+    
+    
 
-    const newInvestment = await createInvestmentservice({
-        userId,
-        plans,
-        amount,
-        investmentId: uuidv4(),
-        investmentDate,
-        duration,
-        returnOnInvestment: 0,
-    });
-
-    return newInvestment;
 }
 
 const updateReturnOnInvestment = async(req,res) =>{
@@ -131,14 +153,20 @@ nodeCron.schedule("0 * * * *", async () => {
 
 // investment history
 async function getAllInvestment(req,res) {
+    // console.log("get all investment")
     try {
-        const userId = req.user.id;
+        // console.log(req)
+        const {userId} = req.user;
+        
+        console.log(userId)
+
         const investment = await findAllInvestmentForUser({userId})
     
         if(investment.length === 0 ){
             return res.status(404).json({msg: "No investment history currently!!"})
         }
 
+        console.log(investment)
         res.status(200).json({success:true, investment});
     } catch (error) {
         res.status(400).json({

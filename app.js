@@ -14,7 +14,8 @@ const adminRouter = require("./routes/adminRoute");
 const app = express();
 
 const allowedOrigins = [  
-    'https://meme-orbit.netlify.app'
+    'https://meme-orbit.netlify.app',
+    "http://localhost:5501"
 ];
 
 const corsOpt = {

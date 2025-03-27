@@ -44,7 +44,7 @@ const getConversionRate = async (method) => {
 const fundWallet = async (req, res) => {
     const { method, amount } = req.body;
     const {userId} = req.user;
-    console.log(userId);
+    // console.log(userId);
 
     try {
         const user = await findUserById({userId});

@@ -2,302 +2,101 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta name="csrf-token" content="IfWRu0HK90uM6YkSq7z5G5SwBfXHdETgd9iHTZaf">
-    <meta property="og:type" content="website">
-    <title>
-        Meme Orbit- Investment History
-    </title>
-
-    <link rel="stylesheet" href="../asset/theme3/frontend/vendor/bootstrap-icons/bootstrap-icons.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/vendor/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/vendor/boxicons/css/boxicons.min.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/css/animate.min.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/css/font-awsome.min.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/css/helper.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/css/iziToast.min.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/css/reset.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/css/selectric.css">
-    <link rel="stylesheet" href="../asset/theme3/frontend/css/style.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment History</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
     <style>
-        .active {
-            color: linear-gradient(45deg, #00367A, #0086B2);
+        body {
+            background-color: #f9fafc;
+        }
+
+        .table thead th {
+            background: linear-gradient(45deg, #00367A, #0086B2);
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 13px;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f4f7fb;
+        }
+
+        .table td,
+        .table th {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 576px) {
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            table thead {
+                display: none;
+            }
+
+            table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                padding: 10px;
+            }
+
+            table tbody tr td {
+                display: flex;
+                justify-content: space-between;
+                padding: 6px 0;
+                border-bottom: none;
+            }
+
+            table tbody tr td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #00367A;
+            }
         }
     </style>
-
-
-
 </head>
 
 <body>
-
-
-    <!-- ======= Header ======= -->
-    <header id="header" class="fixed-top header-inner-pages">
-        <div class="container-fluid d-flex align-items-center justify-content-between">
-            <div class="d-flex flex-wrap align-items-center">
-                <div class="logo me-auto me-lg-0 ">
-                    <a href="../dashboard/dashboard.html">
-                        <img class="img-fluid rounded sm-device-img text-align"
-                            src="../asset/theme3/images/logo/MEMEORBIT LOGO_122256.png" width="100%" alt="pp">
-                    </a>
-                </div>
-            </div>
-            <div id="google_translate_element"></div>
-
-            <script type="text/javascript">
-                function googleTranslateElementInit() {
-                    new google.translate.TranslateElement({
-                        pageLanguage: 'en', // Set the original language of your website
-                        includedLanguages: 'en,es,fr,de,pt,ru,zh-CN,ja,ar,it,nl,ko,tr,sv,pl,id,el,da,no,fi', // Include major country language codes
-                        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-                        autoDisplay: false
-                    }, 'google_translate_element');
-                }
-            </script>
-
-            <script type="text/javascript"
-                src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Investment History</h2>
+        <div class="table-responsive">
+            <table class="table table-striped" id="investment-table">
+                <thead>
+                    <tr>
+                        <th>Investment ID</th>
+                        <th>Duration</th>
+                        <th>Plan</th>
+                        <th>Amount</th>
+                        <th>Investment Date</th>
+                        <th>ROI</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="investment-table-body">
+                    <tr>
+                        <td colspan="7" class="text-center">Loading data...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-    </header>
-    <!-- End Header -->
-
-    <main id="main" class="dashboard-main">
-        <section class="dashboard-section">
-
-            <div class="d-sidebar">
-
-
-                <ul class="d-sidebar-menu">
-                    <li class="active">
-                        <a href="../dashboard/dashboard.html"><i data-feather="home"></i> Dashboard</a>
-                    </li>
-
-                    <li class="has_submenu ">
-                        <a href="#0"><i data-feather="zap"></i> Investment</a>
-                        <ul class="submenu">
-                            <li class="">
-                                <a href="../dashboard/investmentplan.html"><i class="bi bi-chevron-double-right"></i>
-                                    Investment plans</a>
-                            </li>
-                            <li class="">
-                                <a href="../components/invest-log.html"><i class="bi bi-chevron-double-right"></i>
-                                    Invest log</a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="has_submenu ">
-                        <a href="#0"><i data-feather="briefcase"></i> Deposit</a>
-                        <ul class="submenu">
-                            <li class="">
-                                <a href="../components/deposit.html"><i class="bi bi-chevron-double-right"></i>
-                                    Deposit</a>
-                            </li>
-                            <li class="">
-                                <a href="../components/deposit-log.html"><i class="bi bi-chevron-double-right"></i>
-                                    Deposit log</a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="has_submenu ">
-                        <a href="#0"><i data-feather="credit-card"></i> Withdraw</a>
-                        <ul class="submenu">
-                            <li class="">
-                                <a href="../components/withdraw.html"><i class="bi bi-chevron-double-right"></i>
-                                    Withdraw</a>
-                            </li>
-                            <li class="">
-                                <a href="../components/withdrawal-log.html"><i class="bi bi-chevron-double-right"></i>
-                                    Withdraw log</a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="">
-                        <a href="../components/transaction-log.html"><i data-feather="file-text"></i> Transaction
-                            log</a>
-                    </li>
-
-                    <li class="">
-                        <a href="../components/ticket.html"><i data-feather="life-buoy"></i> Support</a>
-                    </li>
-
-                    <li>
-                        <a href="../index.html"><i data-feather="log-out"></i> Logout</a>
-                    </li>
-                </ul>
-
-                <div class="d-plan-notice mt-4 mx-3">
-                    <p class="mb-0">Your current plan
-                        -N/A</p>
-                    <a href="../dashboard/investmentplan.html">Upgrade plan <i class="bi bi-arrow-up"></i></a>
-                </div>
-            </div>
-
-            <!-- mobile bottom menu start -->
-            <div class="mobile-bottom-menu-wrapper">
-                <ul class="mobile-bottom-menu">
-                    <li>
-                        <div class="dropdown" style="margin-left: 10px;">
-                            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(event)">
-                                <i class="bi bi-person-circle"></i>
-                                <span>Profile</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a href="../components/settings.html">Settings</a>
-                                <a href="../index.html">Logout</a>
-                            </div>
-                        </div>
-                    </li>
-
-                    <li>
-                        <a href="../dashboard/dashboard.html" class="active">
-                            <i class="bi bi-grid"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="../dashboard/menu.html" class="">
-                            <i class="bi bi-list"></i>
-                            <span>Menu</span>
-                        </a>
-                    </li>
-
-
-
-                    <!-- <li>
-  <a href="https://globe-asset.com/withdraw" class="">
-    <i class="bi bi-cash-coin"></i>
-    <span>Withdraw</span>
-  </a>
-</li> -->
-
-                </ul>
-            </div>
-            <!-- mobile bottom menu end -->
-
-            <div class="dashboard-body-part">
-
-                <div class="mobile-page-header">
-                    <h5 class="title">Invest log</h5>
-                    <a href="../dashboard/dashboard.html" class="back-btn"><i class="bi bi-arrow-left"></i> Back</a>
-                </div>
-
-                <div class="site-card">
-                    <div class="card-header d-flex flex-wrap align-items-center justify-content-between">
-                        <h5 class="mb-sm-0 mb-2">Invest log</h5>
-                        <form action="" method="get" class="d-inline-flex">
-                            <input type="text" name="trx" class="form-control form-control-sm me-2"
-                                placeholder="transaction id">
-                            <input type="date" class="form-control form-control-sm me-3" placeholder="Search User"
-                                name="date">
-                            <button type="submit" class="btn main-btn btn-sm">Search</button>
-                        </form>
-                    </div>
-                    <div class="card-header">
-                        <div class="text-center mb-4">
-
-                            <div class="table-responsive">
-                                <table class="table site-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Investment Id</th>
-                                            <th>Duration</th>
-                                            <th>Plan</th>
-                                            <th>Amount</th>
-                                            <th>investment Date</th>
-                                            <th>Return On Investment</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal -->
-                <div class="modal fade" id="details" tabindex="-1" role="dialog" aria-labelledby="modelTitleId"
-                    aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Withdraw details</h5>
-                                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true" class="text-white">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="withdraw-details">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-sm sp_btn_danger"
-                                    data-bs-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        </section>
-    </main>
-
-    <script>
-
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+        integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+        crossorigin="anonymous">
     </script>
-
-
-
-
-
-    <script>
-        'use strict'
-        var url = "";
-
-        $(".changeLang").change(function () {
-            if ($(this).val() == '') {
-                return false;
-            }
-            window.location.href = url + "?lang=" + $(this).val();
-        });
-
-        feather.replace();
-
-        // responsive menu slideing
-        $(".d-sidebar-menu>li>a").on("click", function () {
-            var element = $(this).parent("li");
-            if (element.hasClass("open")) {
-                element.removeClass("open");
-                element.find("li").removeClass("open");
-                element.find("ul").slideUp(500, "linear");
-            } else {
-                element.addClass("open");
-                element.children("ul").slideDown();
-                element.siblings("li").children("ul").slideUp();
-                element.siblings("li").removeClass("open");
-                element.siblings("li").find("li").removeClass("open");
-                element.siblings("li").find("ul").slideUp();
-            }
-        });
-
-        $('.sidebar-open-btn').on('click', function () {
-            $(this).toggleClass('active');
-            $('.d-sidebar').toggleClass('active');
-        });
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+        crossorigin="anonymous">
     </script>
     <script src="../scripts/main.js"></script>
-    <script src="../scripts/investment.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="../scripts/invest-history.js"></script>
 </body>
 
 </html>

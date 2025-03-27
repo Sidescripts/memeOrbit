@@ -39,7 +39,7 @@ const getAndUpdateDashboard = async (req, res) => {
       order: [["createdAt", "DESC"]],
       attributes: ["amount"],
     });
-
+    console.log(currentInvestment)
     // Update the user model with calculated totals
     user.totalInvestment = totalInvestment;
     user.totalWithdrawal = totalWithdrawal;

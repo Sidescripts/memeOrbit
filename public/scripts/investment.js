@@ -1,61 +1,120 @@
+// const baseUrl = "/api/v1/investment/";
+
+// document.addEventListener("DOMContentLoaded", () => {
+//     console.log("intoxicate")
+//     const tableBody = document.querySelector("table .site-table tbody");
+
+//     // Function to fetch and populate table data
+//     async function loadTableData() {
+//         if(await isAuthenticated()){
+//             const accessToken = getCookie("accessToken")
+
+//             try {
+//                 const response = await fetch(baseUrl + "history", {
+//                     method: 'GET',
+//                     mode: 'cors',
+//                     headers:{
+//                         'Content-Type': 'application/json',
+//                         'AccessToken': accessToken
+//                     },
+//                     credentials: 'include',
+//                 });
+//                 if (!response.ok) {
+//                     throw new Error(`HTTP error! status: ${response.status}`);
+//                 }
+
+//                 const data = await response.json();
+
+//                 // Clear existing rows
+//                 tableBody.innerHTML = "";
+
+//                 // Populate table with fetched data
+//                 data.forEach(item => {
+//                     console.log(item)
+//                     const row = document.createElement("tr");
+
+//                 row.innerHTML = `
+//                     <td>${item.investmentId}</td>
+//                     <td>${item.duration}</td>
+//                     <td>${item.plan}</td>
+//                     <td>${item.amount}</td>
+//                     <td>${item.investmentDate}</td>
+//                     <td>${item.returnOnInvestment}</td>
+//                     <td>${item.status}</td>
+//                 `;
+
+//                 tableBody.appendChild(row);
+//             });
+//             } catch (error) {
+//                 console.error("Error fetching or displaying data:", error);
+//                 tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Failed to load data</td></tr>`;    
+//             }
+//         }else{
+//             redirectToLogin();
+//         }
+//     }
+
+//     // Load data when page loads
+//     loadTableData();
+// });
+
 const baseUrl = "/api/v1/investment/";
 
-document.addEventListener("DOMContentLoaded", () => {
-    const tableBody = document.querySelector("table.site-table tbody");
+// document.addEventListener("DOMContentLoaded", () => {
+//     const tableBody = document.getElementById("investment-table-body");
 
-    // Function to fetch and populate table data
-    async function loadTableData() {
-        if(await isAuthenticated()){
-            const accessToken = getCookie("accessToken")
+//     async function loadTableData() {
+//         if (await isAuthenticated()) {
+//             const accessToken = getCookie("accessToken");
 
-            try {
-                const response = await fetch(baseUrl + "/history", {
-                    method: 'GET',
-                    mode: 'cors',
-                    headers:{
-                        'Content-Type': 'application/json',
-                        'AccessToken': accessToken
-                    },
-                    credentials: 'include',
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+//             try {
+//                 const response = await fetch(baseUrl + "history", {
+//                     method: 'GET',
+//                     headers: {
+//                         'Content-Type': 'application/json',
+//                         'AccessToken': accessToken
+//                     },
+//                     credentials: 'include',
+//                 });
 
-                const data = await response.json();
+//                 if (!response.ok) {
+//                     throw new Error(`HTTP error! Status: ${response.status}`);
+//                 }
 
-                // Clear existing rows
-                tableBody.innerHTML = "";
+//                 const investments = await response.json();
 
-                // Populate table with fetched data
-                data.forEach(item => {
-                    console.log(item)
-                    const row = document.createElement("tr");
+//                 if (investments.length === 0) {
+//                     tableBody.innerHTML = `<tr><td colspan="7" class="text-center">No investment history found.</td></tr>`;
+//                     return;
+//                 }
 
-                row.innerHTML = `
-                    <td>${item.investmentId}</td>
-                    <td>${item.duration}</td>
-                    <td>${item.plan}</td>
-                    <td>${item.amount}</td>
-                    <td>${item.investmentDate}</td>
-                    <td>${item.returnOnInvestment}</td>
-                    <td>${item.status}</td>
-                `;
+//                 tableBody.innerHTML = investments.map(item => {
+//                     const investmentDate = new Date(item.investmentDate).toLocaleDateString();
+//                     return `
+//                         <tr>
+//                             <td>${item.investmentId}</td>
+//                             <td>${item.duration} hours</td>
+//                             <td>${item.plan || item.plans || 'N/A'}</td>
+//                             <td>$${item.amount}</td>
+//                             <td>${investmentDate}</td>
+//                             <td>$${item.returnOnInvestment}</td>
+//                             <td>${item.status}</td>
+//                         </tr>
+//                     `;
+//                 }).join('');
 
-                tableBody.appendChild(row);
-            });
-            } catch (error) {
-                console.error("Error fetching or displaying data:", error);
-                tableBody.innerHTML = `<tr><td colspan="7" class="text-center">Failed to load data</td></tr>`;    
-            }
-        }else{
-            redirectToLogin();
-        }
-    }
+//             } catch (error) {
+//                 console.error("Error loading investments:", error);
+//                 tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Failed to load data</td></tr>`;
+//             }
+//         } else {
+//             redirectToLogin();
+//         }
+//     }
 
-    // Load data when page loads
-    loadTableData();
-});
+//     loadTableData();
+// });
+
 
 document.addEventListener("DOMContentLoaded", function () {
     const appendDataContainer = document.querySelector('.appendData');
@@ -72,7 +131,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <input type="text" name="final_amo" id="duration" class="form-control final_amo" required readonly>
         </div>
         <div class="col-md-12">
-            <button id="submitBtn" class="btn main-btn plan-btn w-100" type="button">Withdraw now</button>
+            <button id="submitBtn" class="btn main-btn plan-btn w-100" type="button">Proceed</button>
         </div>
     `;
 
@@ -98,27 +157,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 duration.value = `72`;
             }
             
-            console.log(duration.value)
-            console.log(amountInput.value)
+            // console.log(duration.value)
+            // console.log(amountInput.value)
         });
 
         submitButton.addEventListener("click", async function () {
             const amount = parseFloat(amountInput.value) || 0;
-            const method = document.querySelector('select[name="method"]').value;
+            const plans = document.querySelector('select[name="method"]').value;
             // const wallet = document.getElementById("walletAdd").value;
 
-            if (!method || !amount) {
+            if (!plans || !amount) {
                 displayMessage("errorMsg", "All fields are required!");
                 return;
             }
-            // console.log(method)
+            // console.log(amount, plans)
 
             if(await isAuthenticated()){
                 const accessToken = getCookie("accessToken");
                 
 
                 try {
-                    const response = await fetch(baseUrl+"request-withdrawal", {
+                    const response = await fetch(baseUrl+"create", {
                         method: 'POST',
                         mode: "cors",
                         headers: {
@@ -127,18 +186,21 @@ document.addEventListener("DOMContentLoaded", function () {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         credentials: "include",
-                        body: JSON.stringify({ method, amount, wallet })
+                        body: JSON.stringify({ plans, amount})
                     });
                     const result = await response.json();
-                    if (response.ok) {
-                        displayMessage("successMsg", result.message || "Withdrawal request submitted successfully.");
-                    } else {
+                    if(!result.ok){
                         displayMessage("errorMsg", result.error || "An error occurred. Please try again.");
+                        return;
                     }
-                    return result;
+                    displayMessage("successMsg", result.message || "Proud Investor ");
+                    window.location.href = "../components/invest-log.html"
+                    
+                    // return result;
                 } catch (error) {
                     console.log(error)
-                    return error;
+                    displayMessage("errorMsg","Unexpected Error!");
+                    // return error;
                 }
             }else{
                 redirectToLogin();

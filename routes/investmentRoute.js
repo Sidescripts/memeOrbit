@@ -11,7 +11,11 @@ const { userAuthMiddleware, authMiddleware} = require("../middlewares/01-authMid
 
 // Create investment
 router.post("/create", authMiddleware,createInvestment);
-
+// router.post("/create", authMiddleware,(req,res)=>{
+//    const {userId} = req.user;
+//    console.log(req.body)
+//    console.log(userId)
+// });
 // Get investment history
 router.get("/history", authMiddleware,getAllInvestment);
 

@@ -341,14 +341,7 @@
                                     <li>Check out and confirm the details before proceeding.</li>
                                     <li>Click the "Invest Now" button to proceed.</li>
                                 </ol>
-                                <!-- <div class="important-note">
-                                    <strong>Important Notes:</strong>
-                                    <ul>
-                                        <li>Ensure wallet address accuracy; incorrect addresses may result in loss of
-                                            funds.</li>
-                                        <li>Processing takes 24-48 hours. For delays, contact our support team.</li>
-                                    </ul>
-                                </div> -->
+                                
                             </div>
                         </div>
                     </div>
@@ -359,46 +352,50 @@
         </section>
     </main>
 
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
 
     <script>
-        'use strict'
-        var url = "";
+        'use strict';
 
-        $(".changeLang").change(function () {
-            if ($(this).val() == '') {
-                return false;
-            }
-            window.location.href = url + "?lang=" + $(this).val();
-        });
+            $(document).ready(function () {
+                const baseUrl = "";
 
-        feather.replace();
+                // Optional: Language change redirect (commented out if not in use)
+                // $(".changeLang").change(function () {
+                //     const selectedLang = $(this).val();
+                //     if (selectedLang !== '') {
+                //         window.location.href = `${baseUrl}?lang=${selectedLang}`;
+                //     }
+                // });
 
-        // responsive menu slideing
-        $(".d-sidebar-menu>li>a").on("click", function () {
-            var element = $(this).parent("li");
-            if (element.hasClass("open")) {
-                element.removeClass("open");
-                element.find("li").removeClass("open");
-                element.find("ul").slideUp(500, "linear");
-            } else {
-                element.addClass("open");
-                element.children("ul").slideDown();
-                element.siblings("li").children("ul").slideUp();
-                element.siblings("li").removeClass("open");
-                element.siblings("li").find("li").removeClass("open");
-                element.siblings("li").find("ul").slideUp();
-            }
-        });
+                // Sidebar menu toggle logic
+                $(".d-sidebar-menu > li > a").on("click", function () {
+                    const parentLi = $(this).parent("li");
 
-        $('.sidebar-open-btn').on('click', function () {
-            $(this).toggleClass('active');
-            $('.d-sidebar').toggleClass('active');
-        });
+                    if (parentLi.hasClass("open")) {
+                        parentLi.removeClass("open");
+                        parentLi.find("li").removeClass("open");
+                        parentLi.find("ul").slideUp(300);
+                    } else {
+                        parentLi.addClass("open");
+                        parentLi.children("ul").slideDown(300);
+                        parentLi.siblings("li").removeClass("open").find("ul").slideUp(300);
+                        parentLi.siblings("li").find("li").removeClass("open");
+                    }
+                });
+
+                // Sidebar toggle button for smaller screens
+                $('.sidebar-open-btn').on('click', function () {
+                    $(this).toggleClass('active');
+                    $('.d-sidebar').toggleClass('active');
+                });
+            });
+
     </script>
     <script src="../scripts/main.js"></script>
     <script src="../scripts/investment.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+    
 </body>
 
 </html>

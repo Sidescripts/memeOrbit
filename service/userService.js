@@ -53,7 +53,7 @@ const findUserByEmail = async({email}) =>{
 
 const findUserById = async({userId}) =>{
     const user = await User.findOne({userId});
-    console.log(user)
+    // console.log(user)
     if(!user){
         throw new Error("User not found!")
     }

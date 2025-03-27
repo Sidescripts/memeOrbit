@@ -14,7 +14,7 @@ async function authMiddleware(req,res,next)  {
                 return res.status(402).json({msg: "Invalid accessToken"})
             }
             req.user = user;
-            console.log(user)
+            // console.log(user)
             next();
         });
     } catch (error) {

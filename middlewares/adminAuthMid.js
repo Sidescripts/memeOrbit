@@ -1,13 +1,13 @@
 const jwt = require("jsonwebtoken");
 
-function authorizePermissions(...roles){
-    return (req,res,next) =>{
-        if(!roles.includes(req.user.role)){
-            throw new UNAUTHORIZEDApiError('Route is Forbidden!!!')
-        }
-        next();
-    }
-}
+// function authorizePermissions(...roles){
+//     return (req,res,next) =>{
+//         if(!roles.includes(req.user.role)){
+//             throw new Error("Not an admin")
+//         }
+//         next();
+//     }
+// }
 
 async function authMiddleware(req,res,next)  {
     const accessToken = req.headers['accesstoken'];
@@ -25,4 +25,4 @@ async function authMiddleware(req,res,next)  {
     })
 }
 
-module.exports = {authMiddleware, authorizePermissions};
+module.exports = {authMiddleware};

@@ -34,7 +34,6 @@ module.exports = {
       },
       duration: {
         type: Sequelize.INTEGER,
-        defaultValue: 24,
         allowNull: false
       },
       investmentId: {

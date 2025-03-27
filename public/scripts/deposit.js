@@ -220,8 +220,9 @@ async function completedDepositsHistory(){
                 }else{
 
                     deposit.forEach(data => {
-                        const parsedDate = moment(data.date);
-                        const formattedTime = parsedDate.format('DD/MM/YYYY')
+                        // const parsedDate = moment(data.date);
+                        // const formattedTime = parsedDate.format('DD/MM/YYYY')
+                        const formattedTime = new Date(data.createdAt).toLocaleDateString();
 
                         const row = document.createElement("tr");
                         const display = ["date", "trxn_Id", "methhod", "amount", "usd", "status"]
@@ -287,8 +288,9 @@ async function pendingDepositsHistory(){
                 }else{
 
                     deposit.forEach(data => {
-                        const parsedDate = moment(data.date);
-                        const formattedTime = parsedDate.format('DD/MM/YYYY')
+                        // const parsedDate = moment(data.date);
+                        // const formattedTime = parsedDate.format('DD/MM/YYYY')
+                        const formattedTime = new Date(data.createdAt).toLocaleDateString();
 
                         const row = document.createElement("tr");
                         const display = ["date", "trxn_Id", "methhod", "amount", "usd", "status"]
@@ -353,8 +355,9 @@ async function depositHistory(){
                 }else{
 
                     deposit.forEach(data => {
-                        const parsedDate = moment(data.date);
-                        const formattedTime = parsedDate.format('DD/MM/YYYY')
+                        // const parsedDate = moment(data.date);
+                        // const formattedTime = parsedDate.format('DD/MM/YYYY')
+                        const formattedTime = new Date(data.createdAt).toLocaleDateString();
 
                         const row = document.createElement("tr");
                         const display = ["date", "trxn_Id", "methhod", "amount", "usd", "status"]
