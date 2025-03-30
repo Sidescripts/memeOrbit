@@ -5,13 +5,12 @@ const sendEmail = ({to,subject,html}) =>{
 
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
-        port: 465,
+        // port: 465,
         service: 'gmail',
         auth: {
-            user: "memeorbit80@gmail.com",
-            pass: "plqk pauc vcyi uvxh"
-            // user: process.env.EMAIL_USERNAME,
-            // pass: process.env.EMAIL_PASSWORD
+            
+            user: process.env.EMAIL_USERNAME,
+            pass: process.env.EMAIL_PASSWORD
         }
     });
 

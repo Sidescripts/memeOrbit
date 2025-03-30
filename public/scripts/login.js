@@ -25,7 +25,7 @@ async function loginFuction(){
     let emailVal = emaili.value;
     let passwordVal = passwordi.value;
     
-    clearErrors();
+    // clearErrors();
 
     // validate inputs
     if(!emailVal || !passwordVal){

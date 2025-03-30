@@ -47,7 +47,7 @@ app.get("/health-check", (req,res) =>{
 });
 
 
-const port = 3040 || process.env.PORT
+const port = process.env.PORT || 3040;
 async function startServer(){
     try {
         app.listen(port,()=>{

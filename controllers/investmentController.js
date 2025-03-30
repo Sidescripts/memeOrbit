@@ -61,10 +61,6 @@ async function createInvestment(req,res) {
             throw new Error("Insufficient Fund");
         }
 
-        // await user.update({
-            // walletBalance: user.walletBalance - amount,
-            // totalInvestment: user.totalInvestment + amount,
-        // });
 
         user.walletBalance -= amount,
         user.totalInvestment += amount
@@ -80,21 +76,18 @@ async function createInvestment(req,res) {
             duration:duration,
             returnOnInvestment: 0
         });
-        console.log(i)
+        // console.log(i)
         return res.status(201).json({successs:true, msg: "success!", i})
 
             
     } catch (error) {
         console.log(error)
     }    
-    
-    
-    
 
 }
 
 const updateReturnOnInvestment = async(req,res) =>{
-    const userId = req.user.id;
+    const userId = req.user;
     const investments =  await findAllOngoingInvestment();
     const user = await findUserById({userId});
 
