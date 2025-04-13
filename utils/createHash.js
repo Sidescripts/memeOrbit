@@ -15,3 +15,7 @@ module.exports = hashString;
   //   "host": "bghtrd5f1anskvvzlrmo-mysql.services.clever-cloud.com",
   //   "dialect": "mysql"
   // },
+// "production": {
+//     "use_env_variable": "mysql://u1y8rtzutofew04s:QOZd31eLnOno6rFjYtWX@bghtrd5f1anskvvzlrmo-mysq",
+//     "dialect": "mysql"
+//   }
