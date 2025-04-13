@@ -13,7 +13,7 @@ const origin = 'https://meme-orbit.com';
 const signup = async (req, res) => {
     try {
         const { username, email, password, referralLink, country} = req.body;
-        const genRefCode = generateUniqueShortId();
+        
         const isStrongpassword = isPasswordStrong(password);
         
         if(!username || !email || !password || !country){
@@ -33,7 +33,7 @@ const signup = async (req, res) => {
             username: user.username,
             email: user.email,
             country: user.country,
-            referralLink: user.referralLink,
+            
         }
         let refresh_token = crypto.randomBytes(40).toString('hex');
 
@@ -94,7 +94,7 @@ async function login(req,res){
         username: user.username,
         email: user.email,
         country: user.country,
-        referralLink: user.referralLink,
+        
     }
     let refresh_token = '';
 
