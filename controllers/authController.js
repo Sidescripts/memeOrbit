@@ -32,8 +32,7 @@ const signup = async (req, res) => {
             userId: user.id,
             username: user.username,
             email: user.email,
-            country: user.country,
-            
+            country: user.country
         }
         let refresh_token = crypto.randomBytes(40).toString('hex');
 
@@ -43,7 +42,7 @@ const signup = async (req, res) => {
         // send email from ceo
         await sendCeoMail({username: username, email:email});
 
-        // const origin = 'https://meme-orbit.com' // will still be changed
+        const origin = 'https://memeorbit.onrender.com/' // will still be changed
 
         await sendVerificationEmail({
             username: user.username,
@@ -156,7 +155,7 @@ const forgotPassword = async(req,res) =>{
   
       
   
-        // const origin = 'http://localhost:3000'
+        const origin = 'https://memeorbit.onrender.com/'
   
       const tenMins = 1000 * 60 * 10;
       const passwordResetExpires = new Date(Date.now() + tenMins);

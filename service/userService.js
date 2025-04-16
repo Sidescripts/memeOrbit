@@ -35,7 +35,6 @@ const createUser = async ({ username, email, password,country, verificationToken
         email,
         password: hashedPassword,
         country,
-        referralLink,
         verificationToken
     });
 
