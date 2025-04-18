@@ -73,4 +73,4 @@ db.sequelize.sync({alter: true}).then(() =>{
 //     }
 // }
 
-startServer();
+// startServer();
