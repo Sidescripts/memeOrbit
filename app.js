@@ -51,6 +51,7 @@ app.get("/health-check", (req,res) =>{
 
 const port = process.env.PORT || 3040;
 
+//for prod
 db.sequelize.sync({alter: true}).then(() =>{
     console.log("Db synced")
     app.listen(port,()=>{
@@ -60,6 +61,7 @@ db.sequelize.sync({alter: true}).then(() =>{
     console.error("sync error occurred:", err)
 });
 
+//for local
 // async function startServer(){
 //     try {
 //         app.listen(port,()=>{
@@ -70,4 +72,4 @@ db.sequelize.sync({alter: true}).then(() =>{
 //     }
 // }
 
-// startServer();
+startServer();

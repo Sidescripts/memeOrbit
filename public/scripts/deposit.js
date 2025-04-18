@@ -56,14 +56,14 @@ async function btcDeposit(){
             
             if(!response.ok){
                 displayError(`Error: ${response.status} - ${response.statusText}`)
+                return;
             }
             
             const result = await response.json();
             localStorage.removeItem("paymentMethod")
-            displaysuccess("Deposit is now being processed!!")
-            window.location.href = "../dashboard/dashboard.html"
-            return result;
-            
+            displaysuccess("Deposit is now being processed!!" || result.message)
+            // window.location.href = "../dashboard/dashboard.html"
+            return;
 
         } catch (error) {
             console.log(error)
@@ -110,13 +110,14 @@ async function ethDeposit(){
             
             if(!response.ok){
                 displayError(`Error: ${response.status} - ${response.statusText}`)
+                return;
             }
             
             const result = await response.json();
             localStorage.removeItem("paymentMethod")
-            displaysuccess("Deposit is now being processed!!")
-            window.location.href = "../dashboard/dashboard.html"
-            return result;
+            displaysuccess("Deposit is now being processed!!" || result.message)
+            // window.location.href = "../dashboard/dashboard.html"
+            return;
             
 
         } catch (error) {
@@ -164,13 +165,14 @@ async function usdtDeposit(){
             
             if(!response.ok){
                 displayError(`Error: ${response.status} - ${response.statusText}`)
+                return; 
             }
             
             const result = await response.json();
             localStorage.removeItem("paymentMethod")
-            displaysuccess("Deposit is now being processed!!")
-            window.location.href = "../dashboard/dashboard.html"
-            return result;
+            displaysuccess("Deposit is now being processed!!" || result.message)
+            // window.location.href = "../dashboard/dashboard.html"
+            return;
             
 
         } catch (error) {
@@ -336,6 +338,12 @@ async function depositHistory(){
                 },
                 credentials: 'include'    
             });
+
+            if (!response.ok){
+                displayError("Error occurred while loading");
+                return;
+            }
+
             
             if(response.ok){
                 const data = await response.json();
@@ -379,7 +387,6 @@ async function depositHistory(){
         }
     }else{
         redirectToLogin();
-        
     }
 
 }
@@ -388,5 +395,3 @@ async function depositHistory(){
 window.onload = depositHistory;
 window.onload = completedDepositsHistory;
 window.onload = pendingDepositsHistory;
-
-

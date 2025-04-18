@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }).join('');
 
             } catch (error) {
-                console.error("Error loading investments:", error);
+                // console.error("Error loading investments:", error);
                 tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Failed to load data</td></tr>`;
             }
         } else {

@@ -26,7 +26,7 @@ async function dashboard(){
             
 
             const data = await response.json();
-            console.log(data)
+            // console.log(data)
             
             if(!response.ok){
                 throw new Error("Request Error!") 
@@ -49,7 +49,7 @@ async function dashboard(){
             
 
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             return error;
         }
     }else{

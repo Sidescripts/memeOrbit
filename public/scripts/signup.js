@@ -83,8 +83,8 @@ async function signupBtn() {
         if (!response.ok) {
             const resp = await response.json();
             // displayError(resp.msg || 'Something went wrong');
-            displayError(resp.error);
-            console.log(resp)
+            displayError(resp.message);
+            // console.log(resp)
             btn.textContent = 'Sign up';
             btn.disabled = false;
             form.disabled = false;
