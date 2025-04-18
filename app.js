@@ -16,8 +16,9 @@ const db =  require("./models")
 const app = express();
 
 const allowedOrigins = [  
-    'https://meme-orbit.netlify.app',
+    'https://meme-orbit-admin.netlify.app',
     "http://localhost:5501"
+
 ];
 
 const corsOpt = {
