@@ -26,7 +26,7 @@ const findWithdrawalById = async({id}) =>{
         if (!withdrawal) throw new Error("Withdrawal not found");
         return withdrawal;
     } catch (error) {
-        throw new Error('Error occurred: ',error.message )
+        throw new Error('Error occurred: ', error )
     }
 }
 

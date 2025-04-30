@@ -203,7 +203,7 @@
                     </div>
                     <div class="card-header">
                         <div class="text-center mb-4">
-                            <div class="tab-btn-group">
+                            <!-- <div class="tab-btn-group">
                                 <a class="tab-btn active" href="./withdrawal-log.html">All <span
                                         class="d-sm-inline-block d-none">Withdraw</span></a>
 
@@ -212,11 +212,13 @@
 
                                 <a class="tab-btn " href="./complete-withdrawal.html">Complete <span
                                         class="d-sm-inline-block d-none">Withdraw</span></a>
-                            </div>
+                            </div> -->
                         </div>
                         <div class="table-responsive">
-                            <table class="table site-table">
-                                <thead>
+                            <!-- <table class="table site-table"> -->
+                            <table class="table table-bordered text-center" id="witHistory">
+                            
+                                <thead class="table-dark">
                                     <tr>
                                         <th>Trxn-Id</th>
                                         <th>Date</th>
@@ -227,8 +229,10 @@
                                         <th>Status</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    
+                                <tbody id="witHistoryBody">
+                                    <tr>
+                                        <td colspan="6">Loading withdrawal History..</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -277,7 +281,7 @@
     </script>
 
     <script src="../scripts/main.js"></script>
-    <script src="../scripts/withdrawal.js"></script>
+    <script src="../scripts/withdrawalHistory.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
 </body>

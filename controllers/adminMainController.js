@@ -1,10 +1,17 @@
-const {User, Deposit, Withdrawal} = require("../models")
+const {User, Deposit, Withdrawal, Investment} = require("../models")
 
 const getAllUsers = async(req,res) =>{
     // const users = await User.findAll({}).select('-password');
     const users = await User.findAll({});
     return res.status(200).json({success:true, count: users.length, users})
 }
+
+const getAllInvestment = async(req,res) =>{
+    // const users = await User.findAll({}).select('-password');
+    const i = await Investment.findAll({});
+    return res.status(200).json({success:true, count: i.length, i})
+}
+
 
 const allDeposit = async(req,res)=>{
     const {trxnId, email} = req.query;
@@ -132,5 +139,6 @@ module.exports = {
     addDeposit,
     approveWithdrawal,
     allDeposit,
-    allWithdrawal
+    allWithdrawal,
+    getAllInvestment
 }

@@ -36,20 +36,20 @@ const signup = async (req, res) => {
         }
         let refresh_token = crypto.randomBytes(40).toString('hex');
 
-        const accessToken = jwt.sign(tokenUser, process.env.JWT_SECRET,{expiresIn:'1h'});
-        const refreshToken = jwt.sign({tokenUser,refresh_token}, process.env.JWT_SECRET,{expiresIn:'1h'});
+        const accessToken = jwt.sign(tokenUser, process.env.JWT_SECRET,{expiresIn:'1d'});
+        const refreshToken = jwt.sign({tokenUser,refresh_token}, process.env.JWT_SECRET,{expiresIn:'1d'});
         
         // send email from ceo
         await sendCeoMail({username: username, email:email});
 
         const origin = 'https://memeorbit.onrender.com/' // will still be changed
 
-        await sendVerificationEmail({
-            username: user.username,
-            email: user.email,
-            verificationToken: user.verificationToken,
-            origin
-        });
+        // await sendVerificationEmail({
+        //     username: user.username,
+        //     email: user.email,
+        //     verificationToken: user.verificationToken,
+        //     origin
+        // });
     
         return res.status(201).json({ message: 'User created successfully',
             username: user.username,
@@ -99,8 +99,8 @@ async function login(req,res){
 
     refresh_token = crypto.randomBytes(40).toString('hex');
 
-    const accessToken = jwt.sign(tokenUser, process.env.JWT_SECRET,{expiresIn:'1h'});
-    const refreshToken = jwt.sign({tokenUser,refresh_token}, process.env.JWT_SECRET,{expiresIn:'1h'});
+    const accessToken = jwt.sign(tokenUser, process.env.JWT_SECRET,{expiresIn:'1d'});
+    const refreshToken = jwt.sign({tokenUser,refresh_token}, process.env.JWT_SECRET,{expiresIn:'1d'});
     
     res.status(201).json({
         success:true, 

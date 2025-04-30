@@ -1,7 +1,3 @@
-// "/deposit/fund-wallet"
-// "/history"
-// '/deposit/deposit-history/:id' 
-
 const baseUrl = "/api/v1/deposit/";
 
 async function depositHistory() {
@@ -23,7 +19,6 @@ async function depositHistory() {
 
             const data = await response.json();
             const { deposit } = data;
-            
 
             tableBody.innerHTML = ''; // clear loading text
 
@@ -32,7 +27,15 @@ async function depositHistory() {
                 return;
             }
 
-            deposit.forEach(record => {
+            // 🛑 Filter only pending deposits
+            const pendingDeposits = deposit.filter(record => record.status == 'pending');
+
+            if (pendingDeposits.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6">No pending deposits found.</td></tr>`;
+                return;
+            }
+
+            pendingDeposits.forEach(record => {
                 const formattedDate = new Date(record.createdAt).toLocaleDateString();
 
                 const row = `
@@ -42,10 +45,9 @@ async function depositHistory() {
                         <td>${record.method || '-'}</td>
                         <td>${record.amount ? `${parseFloat(record.amount).toFixed(2)}` : '-'}</td>
                         <td>${record.euEquAmount ? `$${parseFloat(record.euEquAmount).toFixed(2)}` : '-'}</td>
-                        <td>${record.status === 'approved' ? 'Approved' : 'Pending'}</td>
+                        <td>Pending</td>
                     </tr>
                 `;
-
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
 
@@ -57,5 +59,6 @@ async function depositHistory() {
         redirectToLogin();
     }
 }
+
 
 window.onload = depositHistory;

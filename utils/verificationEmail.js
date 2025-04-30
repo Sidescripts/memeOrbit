@@ -2,6 +2,7 @@ const  { sendEmail} = require("./emailConfig");
 
 const sendVerificationEmail = async({email, username, verificationToken, origin}) =>{
     const verificationUrl = `${origin}/pages/verify.html?token=${verificationToken}&email=${email}`
+    // const verificationUrl = `${origin}/components/verify.html?token=${verificationToken}&email=${email}`
     const message = `
 
         <!DOCTYPE html>

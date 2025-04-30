@@ -44,21 +44,24 @@ const getConversionRate = async (method) => {
 const fundWallet = async (req, res) => {
     const { method, amount } = req.body;
     const {userId} = req.user;
-    // console.log(userId);
+    console.log(method , amount);
 
     try {
         const user = await findUserById({userId});
         if(!user){
-            return res.status(404).json({error: " User not found!"})
+            throw new Error("User not found");
+            // return res.status(404).json({error: " User not found!"})
         }
 
         // Validate method and amount
         if (!["btc", "eth", "usdt"].includes(method)) {
-            return res.status(400).json({ error: "Invalid deposit method" });
+            throw new Error("Invalid deposit method")
+            // return res.status(400).json({ error: "Invalid deposit method" });
         }
 
         if (!amount || isNaN(amount)) {
-            return res.status(400).json({ error: "Invalid amount" });
+            throw new Error("Invalid amount")
+            // return res.status(400).json({ error: "Invalid amount" });
         }
 
         // Get the conversion rate
@@ -69,7 +72,8 @@ const fundWallet = async (req, res) => {
 
         // Ensure the minimum deposit equivalent in USDT
         if (usdtEquivalentAmount < 300) {
-            return res.status(400).json({ error: "Minimum deposit is 300 USDT" });
+            throw new Error("Minimum deposit is 300usd")
+            // return res.status(400).json({ error: "Minimum deposit is 300 USDT" });
         }
 
         const trxnId = `WD-${Date.now()}`;

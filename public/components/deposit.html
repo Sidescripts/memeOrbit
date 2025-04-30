@@ -335,6 +335,7 @@
                 localStorage.setItem("depositAmt", amount);
                 const method = localStorage.getItem("paymentMethod")
                 amount = "";
+                console.log(amount, method)
                 if (method == "Bitcoin") {
                     window.location.href = "./btc-deposit-details.html"
                 

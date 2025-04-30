@@ -215,8 +215,8 @@
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <table class="table site-table" id="depositHistory">
-                                <thead>
+                            <table class="table table-bordered text-center" id="depositHistory">
+                                <thead class="table-dark">
                                     <tr>
                                         <th>Date</th>
                                         <th>Trxn-Id</th>
@@ -226,12 +226,10 @@
                                         <th>Status</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <!-- <tr>
-                                        <td data-caption="Status" class="text-center" colspan="100%">
-                                            No data found
-                                        </td>
-                                    </tr> -->
+                                <tbody id="depositHistoryBody">
+                                    <tr>
+                                        <td colspan="6">Loading deposit history...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -287,7 +285,7 @@
         });
     </script>
     <script src="../scripts/main.js"></script>
-    <script src="../scripts/deposit.js"></script>
+    <script src="../scripts/pendingdepo.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
 </body>

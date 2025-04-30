@@ -189,9 +189,103 @@ async function getOneInvestment(req,res) {
     }
 }
 
+
+const adminUpdateInvestment = async (req, res) => {
+    const userId = req.user;
+    const { investmentId } = req.params;
+
+    try {
+        // const investment = await findInvestmentById(investmentId);
+
+        const investment = await Investment.findByPk(investmentId);
+
+
+        if (!investment) {
+            return res.status(404).json({ msg: `Investment with ID ${investmentId} not found` });
+        }
+
+        // if (investment.userId !== userId) {
+        //     return res.status(403).json({ msg: `You are not authorized to update this investment` });
+        // }
+
+        if (investment.status !== 'ongoing') {
+            return res.status(400).json({ msg: 'Investment is already completed' });
+        }
+
+        const { investmentDate, amount, plans } = investment;
+
+        if (!investmentDate) {
+            return res.status(400).json({ msg: 'Investment date is missing' });
+        }
+
+        // Set duration based on plan
+        let durationHours;
+        switch (plans.toLowerCase()) {
+            case 'basic plan':
+                durationHours = 24;
+                break;
+            case 'moon plan':
+                durationHours = 48;
+                break;
+            case 'boom plan':
+                durationHours = 72;
+                break;
+            default:
+                return res.status(400).json({ msg: `Invalid plan: ${plans}` });
+        }
+
+        const expirationTime = new Date(investmentDate).getTime() + durationHours * 60 * 60 * 1000;
+        const currentTime = Date.now();
+
+        if (currentTime < expirationTime) {
+            return res.status(400).json({ msg: 'Investment duration has not been completed yet' });
+        }
+
+        // Find user
+        const user = await findUserById({ userId });
+
+        if (!user) {
+            return res.status(404).json({ msg: `User with ID ${userId} not found` });
+        }
+
+        const roi = parseFloat(amount) * 5;
+
+        // Update investment
+        await investment.update({
+            status: 'completed',
+            returnOnInvestment: roi,
+        });
+
+        // Update user wallet
+        await user.update({
+            walletBalance: parseFloat(user.walletBalance) + roi,
+        });
+
+        return res.status(200).json({
+            msg: 'Investment successfully updated',
+            updatedInvestment: {
+                email: user.email,
+                investmentId: investment.investmentId,
+                status: investment.status,
+                returnOnInvestment: investment.returnOnInvestment,
+                duration: investment.duration,
+                plan: investment.plan,
+                amount: investment.amount,
+                date: investmentDate
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ msg: 'Server error', error: error.message });
+    }
+};
+
+
 module.exports = {
     createInvestment,
     getAllInvestment,
     getOneInvestment,
-    updateReturnOnInvestment   
+    updateReturnOnInvestment,   
+    adminUpdateInvestment
 }
