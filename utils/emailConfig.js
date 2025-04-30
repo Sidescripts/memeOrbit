@@ -24,11 +24,11 @@ const sendEmail = ({to,subject,html}) =>{
     } , (error, info) =>{
         if(error){
             console.log(error)
-            // return error;
+            return;
             
         }else{
-            console.log("email sent:" + info)
-            // return true
+            console.log("email sent" )
+            return true
         }
     });
 };

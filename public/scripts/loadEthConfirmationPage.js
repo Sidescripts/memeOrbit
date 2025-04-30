@@ -15,7 +15,7 @@ async function loadConfirmation() {
                 // calc amount
                 const amountInUsd = Number(amt) * usd;
                 equAmtI.textContent = amountInUsd
-                depositAmtI.textContent = Number(amt).toFixed(2);
+                depositAmtI.textContent = Number(amt);
             
             } catch (error) {
                 console.log(error);
@@ -51,7 +51,7 @@ async function ethDeposit(){
                 amount: Number(amt),
                 method: method
             }
-            console.log(data)
+            // console.log(data)
             const response = await fetch(baseUrl + "fund-wallet", {
                 method: "POST",
                 mode: 'cors',

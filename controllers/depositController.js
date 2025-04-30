@@ -44,7 +44,7 @@ const getConversionRate = async (method) => {
 const fundWallet = async (req, res) => {
     const { method, amount } = req.body;
     const {userId} = req.user;
-    console.log(method , amount);
+    // console.log(method , amount);
 
     try {
         const user = await findUserById({userId});
@@ -72,7 +72,7 @@ const fundWallet = async (req, res) => {
 
         // Ensure the minimum deposit equivalent in USDT
         if (usdtEquivalentAmount < 300) {
-            throw new Error("Minimum deposit is 300usd")
+            throw new Error("Minimum deposit is $300")
             // return res.status(400).json({ error: "Minimum deposit is 300 USDT" });
         }
 
@@ -102,7 +102,7 @@ const fundWallet = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error handling deposit:", error.message);
+        console.error("Error handling deposit:", error);
         return res.status(500).json({ error: "An error occurred while processing the deposit" });
     }
 };

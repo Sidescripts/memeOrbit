@@ -13,7 +13,7 @@ async function confirmBtcPage() {
                 // calc amount
                 const amountInUsd = Number(amt) * btcPriceInUsd;
                 equAmtI.textContent = amountInUsd
-                depositAmtI.textContent = Number(amt).toFixed(2);
+                depositAmtI.textContent = Number(amt);
                 
             } catch (error) {
                 console.log(error);
