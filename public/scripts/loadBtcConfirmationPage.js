@@ -74,7 +74,7 @@ async function btcDeposit(){
                 message: result.message || "Deposit is now being processed!!",
                 position: 'topRight',
             });
-            // window.location.href = "../dashboard/dashboard.html"
+            window.location.href = "../components/deposit-log.html"
             // return;
 
         } catch (error) {

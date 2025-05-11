@@ -19,10 +19,10 @@ const getConversionRate = async (method) => {
             apiEndpoint = "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd"; // Replace with an appropriate ETH-to-USD API
             break;
         case "usdt":
-            apiEndpoint = "https://api.coingecko.com/api/v3/simple/price?ids=usdt&vs_currencies=usd"; // Replace with an appropriate USDT-to-USD API
+            apiEndpoint = "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd"; // Replace with an appropriate USDT-to-USD API
             break;
         default:
-            throw new Error("Invalid deposit method");
+            throw new Error("Invalid deposit method!");
     }
 
     // Fetch conversion rate
@@ -44,7 +44,7 @@ const getConversionRate = async (method) => {
 const fundWallet = async (req, res) => {
     const { method, amount } = req.body;
     const {userId} = req.user;
-    // console.log(method , amount);
+//    console.log(method)
 
     try {
         const user = await findUserById({userId});
@@ -98,7 +98,6 @@ const fundWallet = async (req, res) => {
             message: "Deposit successful",
             convertedAmount: usdtEquivalentAmount.toFixed(2),
             data: deposit,
-            currency: "USDT",
         });
 
     } catch (error) {

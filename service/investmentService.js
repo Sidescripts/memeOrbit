@@ -48,6 +48,29 @@ const findAllInvestment = async({}) =>{
     }
 }
 
+const findMostRecentCompletedInvestment = async ({ userId }) => {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required.");
+    }
+
+    const recentInvestment = await Investment.findOne({
+      where: {
+        userId,
+        status: "completed", // Adjust this if your model uses a different field or value
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    return recentInvestment;
+  } catch (error) {
+    console.error("Error fetching most recent completed investment:", error.message);
+    throw new Error("Unable to fetch most recent completed investment.");
+  }
+};
+
+
+
 const findAllInvestmentBasedOnDate = async({}) =>{
     try {
         const investment = await Investment.findAll({
@@ -134,5 +157,6 @@ module.exports = {
     findAllOngoingInvestment,
     findMostRecentInvestment,
     getSingleInvestmentById,
-    findAllInvestmentBasedOnDate   
+    findAllInvestmentBasedOnDate,
+    findMostRecentCompletedInvestment
 }

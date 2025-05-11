@@ -4,10 +4,9 @@ const {
     createWithdrawal
 } = require("../service/withdrawalServices");
 const {findUserById} = require("../service/userService");
-const {findMostRecentInvestment} = require("../service/investmentService");
+const {findMostRecentInvestment, findMostRecentCompletedInvestment} = require("../service/investmentService");
 const axios = require("axios");
 const sendWithdrawalEmail = require("../utils/wthEmail");
-const { userAuthMiddleware } = require("../middlewares/01-authMid");
 
 const getConversionRate = async (method) => {
     let apiEndpoint;
@@ -18,7 +17,7 @@ const getConversionRate = async (method) => {
             apiEndpoint = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"; // Replace with a BTC-to-USD API if needed
             break;
         case "usdt":
-            apiEndpoint = "https://api.coingecko.com/api/v3/simple/price?ids=usdt&vs_currencies=usd"; // Replace with an appropriate USDT-to-USD API
+            apiEndpoint = "https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd"; // Replace with an appropriate USDT-to-USD API
             break;
         default:
             throw new Error("Invalid deposit method");
@@ -39,80 +38,82 @@ const getConversionRate = async (method) => {
 };
 
 // request withdrawal
-async function requestWithdrawal(req,res) {
-    const userId = req.user.id;
-    const {amount, method, walletAdd} = req.body;
-    const user = await findUserById({userId});
-    const recentInvestment = await findMostRecentInvestment({userId})
+async function requestWithdrawal(req, res) {
+  const userId = req.user.userId;
+  const { amount, method, walletAdd } = req.body;
     
-    try {
+  try {
+    if (!amount || !method || !walletAdd) {
+      return res.status(400).json({ error: "Please provide all required fields: amount, method, and wallet address." });
+    }
 
-        if(!amount||!method||!walletAdd){
-            return res.status(404).json({error: "Please provide the needed value(s)"})
-        }
-
-        if(!user){
-            return res.status(404).json({error: "User not found!"})
-        }
-
-        // Validate method and amount
-        if (!["btc", "usdt"].includes(method)) {
-            return res.status(400).json({ error: "Invalid withdrawal method" });
-        }
+    const user = await findUserById({ userId });
     
-        if(!recentInvestment){
-            return res.status(400).json({ error: "No recent Investment" });
-        }
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
 
-        if (!amount || isNaN(amount)) {
-            return res.status(400).json({ error: "Invalid amount" });
-        }
+    const recentInvestment = await findMostRecentCompletedInvestment({ userId });
+    if (!recentInvestment) {
+      return res.status(400).json({ error: "No recent investment found." });
+    }
 
-        // Get the conversion rate
-        const conversionRate = await getConversionRate(method);
+    if (!["btc", "usdt"].includes(method)) {
+      return res.status(400).json({ error: "Invalid withdrawal method. Choose 'btc' or 'usdt'." });
+    }
 
-        // Convert the deposit amount to USDT
-        const usdtEquivalentAmount = parseFloat(amount) * conversionRate;
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ error: "Invalid withdrawal amount." });
+    }
 
-        if (usdtEquivalentAmount > user.walletBalance) {
-             return res.status(400).json({
-            error: "Insufficient wallet balance for the EUR equivalent amount.",
-            });
-        }
-        
-        const plan = recentInvestment.plan;
-        const maxWithdrawalLimits = {
-            basic: 100,
-            moon: 500,
-            boom: Infinity,
-        }
+    // Get conversion rate to USDT
+    const conversionRate = await getConversionRate(method);
+    const usdtEquivalent = numericAmount * conversionRate;
 
-        if(usdtEquivalentAmount > maxWithdrawalLimits[plan]){
-            const nextPlan = plan === "moon plan" ? "basic plan" : "boom plan";
-            return res.status(400).json({
-                error: `Upgrade to the ${nextPlan} to process this withdrawal amount.`,
-            });
-        }
+    if (usdtEquivalent > user.walletBalance) {
+      return res.status(400).json({
+        error: "Insufficient wallet balance for the equivalent USDT amount.",
+      });
+    }
 
-        
+    const plan = recentInvestment.plan?.toLowerCase(); // handle case sensitivity
+    const maxWithdrawalLimits = {
+      "basic plan": 100,
+      "moon plan": 500,
+      "boom plan": Infinity,
+    };
 
-        
+    const planLimit = maxWithdrawalLimits[plan] ?? 0;
 
-    // Deduct EUR equivalent from user's wallet
-    user.walletBalance -= usdtEquivalentAmount;
+    if (usdtEquivalent > planLimit) {
+      const nextPlan = plan === "basic plan" ? "moon plan" : "boom plan";
+      return res.status(400).json({
+        error: `Upgrade to the ${nextPlan} to process this withdrawal amount.`,
+      });
+    }
+
+    // Deduct from wallet
+    user.walletBalance -= usdtEquivalent;
     await user.save();
 
     const trxnId = `WD-${Date.now()}`;
     const withdrawal = await createWithdrawal({
-        userId, amount, trxnId,method, euEquAmount:usdtEquivalentAmount, walletAdd, status:"pending"
+      userId,
+      amount: numericAmount,
+      trxnId,
+      method,
+      euEquAmount: usdtEquivalent,
+      walletAdd,
+      status: "pending",
     });
 
     await sendWithdrawalEmail({
-        email: user.email,
-        username: user.username,
-        method: method,
-        amount: amount,
-        status: "Pending"
+      email: user.email,
+      username: user.username,
+      method,
+      amount: numericAmount,
+      status: "Pending",
     });
 
     return res.status(200).json({
@@ -120,11 +121,12 @@ async function requestWithdrawal(req,res) {
       withdrawal,
     });
 
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: error.message });
-    }
+  } catch (error) {
+    console.error("Withdrawal request error:", error);
+    return res.status(500).json({ error: "An unexpected error occurred. Please try again later." });
+  }
 }
+
 
 // withdrawal history
 async function withdrawalHistory(req,res) {

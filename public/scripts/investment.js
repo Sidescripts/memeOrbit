@@ -1,102 +1,92 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const appendDataContainer = document.querySelector('.appendData');
+const baseUrl = "/api/v1/investment/";
 
-    const additionalFields = `
-        <div class="col-md-12 mb-3 mt-3">
-            <label for="wthAmount">Amount <span class="sp_text_danger">*</span></label>
-            <input type="text" name="amount" id="amount" class="form-control amount" required>
-            <p class="text-small color-change mb-0 mt-1">
-            </p>
-        </div>
-        <div class="col-md-12 mb-3">
-            <label for="finalWthAmount">Duration<span class="sp_text_danger">*</span></label>
-            <input type="text" name="final_amo" id="duration" class="form-control final_amo" required readonly>
-        </div>
-        <div class="col-md-12">
-            <button id="submitBtn" class="btn main-btn plan-btn w-100" type="button">Proceed</button>
-        </div>
-    `;
+document.addEventListener("DOMContentLoaded", () => {
+  const appendDataContainer = document.querySelector(".appendData");
+  const methodSelect = document.querySelector('select[name="method"]');
 
-    document.querySelector('select[name="method"]').addEventListener('change', function () {
-        appendDataContainer.innerHTML = this.value ? additionalFields : '';
-        if (this.value) attachDynamicHandlers();
+  const additionalFields = `
+    <div class="col-md-12 mb-3 mt-3">
+      <label for="amount">Amount <span class="sp_text_danger">*</span></label>
+      <input type="text" name="amount" id="amount" class="form-control amount" required>
+      <p class="text-small color-change mb-0 mt-1"></p>
+    </div>
+    <div class="col-md-12 mb-3">
+      <label for="duration">Duration <span class="sp_text_danger">*</span></label>
+      <input type="text" name="duration" id="duration" class="form-control final_amo" readonly required>
+    </div>
+    <div class="col-md-12">
+      <button id="submitBtn" class="btn main-btn plan-btn w-100" type="button">Proceed</button>
+    </div>
+  `;
+
+  methodSelect.addEventListener("change", () => {
+    const selectedPlan = methodSelect.value;
+    appendDataContainer.innerHTML = selectedPlan ? additionalFields : "";
+    if (selectedPlan) attachDynamicHandlers();
+  });
+
+  function attachDynamicHandlers() {
+    const amountInput = document.getElementById("amount");
+    const durationInput = document.getElementById("duration");
+    const submitButton = document.getElementById("submitBtn");
+
+    amountInput.addEventListener("input", () => {
+      const plan = methodSelect.value;
+      const durations = {
+        "basic plan": 24,
+        "moon plan": 48,
+        "boom plan": 72
+      };
+      durationInput.value = durations[plan] || '';
     });
 
-    function attachDynamicHandlers() {
-        const amountInput = document.getElementById("amount");
-        const duration = document.getElementById("duration");
-        const submitButton = document.getElementById("submitBtn");
+    submitButton.addEventListener("click", async () => {
+      const amount = parseFloat(amountInput.value.trim()) || 0;
+      const plan = methodSelect.value;
 
-        amountInput.addEventListener("input", function () {
-            const value = parseFloat(amountInput.value) || 0;
-            // duration.value = `$${value.toFixed(2)}`;
-            
-            if (document.querySelector('select[name="method"]').value === 'basic plan') {
-                duration.value = `24`;
-            } else if (document.querySelector('select[name="method"]').value === 'moon plan') {
-                duration.value = `48`;
-            }else {
-                duration.value = `72`;
-            }
-            
-            // console.log(duration.value)
-            // console.log(amountInput.value)
+      if (!plan || !amount) {
+        return displayMessage("errorMsg", "All fields are required!");
+      }
+
+      if (!(await isAuthenticated())) {
+        return redirectToLogin();
+      }
+
+      const accessToken = getCookie("accessToken");
+
+      try {
+        const response = await fetch(`${baseUrl}create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'AccessToken': accessToken,
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+          },
+          credentials: "include",
+          body: JSON.stringify({ plans: plan, amount })
         });
 
-        submitButton.addEventListener("click", async function () {
-            const amount = parseFloat(amountInput.value) || 0;
-            const plans = document.querySelector('select[name="method"]').value;
-            // const wallet = document.getElementById("walletAdd").value;
+        const result = await response.json();
 
-            if (!plans || !amount) {
-                displayMessage("errorMsg", "All fields are required!");
-                return;
-            }
-            // console.log(amount, plans)
+        if (!response.ok) {
+          return displayMessage("errorMsg", result.error || "An error occurred. Please try again.");
+        }
 
-            if(await isAuthenticated()){
-                const accessToken = getCookie("accessToken");
-                
+        displayMessage("successMsg", result.message || "Proud Investor");
+        window.location.href = "../components/invest-log.html";
 
-                try {
-                    const response = await fetch(baseUrl+"create", {
-                        method: 'POST',
-                        mode: "cors",
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'AccessToken': accessToken,
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        credentials: "include",
-                        body: JSON.stringify({ plans, amount})
-                    });
-                    const result = await response.json();
-                    if(!result.ok){
-                        displayMessage("errorMsg", result.error || "An error occurred. Please try again.");
-                        return;
-                    }
-                    displayMessage("successMsg", result.message || "Proud Investor ");
-                    window.location.href = "../components/invest-log.html"
-                    
-                    // return result;
-                } catch (error) {
-                    console.log(error)
-                    displayMessage("errorMsg","Unexpected Error!");
-                    return;
-                }
-            }else{
-                redirectToLogin();
-            }
+      } catch (error) {
+        console.error(error);
+        displayMessage("errorMsg", "Unexpected error occurred!");
+      }
+    });
+  }
 
-
-            
-        });
+  function displayMessage(elementId, message) {
+    const el = document.getElementById(elementId);
+    if (el) {
+      el.textContent = message;
+      setTimeout(() => { el.textContent = ""; }, 5000);
     }
-
-    function displayMessage(elementId, message) {
-        const element = document.getElementById(elementId);
-        element.textContent = message;
-        setTimeout(() => { element.textContent = ''; }, 5000);
-    }
+  }
 });
-

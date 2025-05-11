@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const amount = parseFloat(amountInput.value) || 0;
             const method = document.querySelector('select[name="method"]').value;
             const wallet = document.getElementById("walletAdd").value;
-
+            console.log(wallet)
             if (!method || !amount || !wallet) {
                 displayMessage("errorMsg", "All fields are required!");
                 return;
@@ -85,10 +85,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         headers: {
                             'Content-Type': 'application/json',
                             'AccessToken': accessToken,
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            
                         },
                         credentials: "include",
-                        body: JSON.stringify({ method, amount, wallet })
+                        body: JSON.stringify({ method, amount, walletAdd: wallet })
                     });
                     const result = await response.json();
                     if (response.ok) {

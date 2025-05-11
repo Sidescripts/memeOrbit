@@ -18,76 +18,71 @@ async function loadConfirmation() {
 
 }
 
-async function usdtDeposit(){
 
-    if(await isAuthenticated()){
-        const accessToken = getCookie("accessToken")
-        
-        try {
-            const storedMethod = localStorage.getItem("paymentMethod");
-            const amt = localStorage.getItem("depositAmt");
+async function usdtDeposit() {
+    if (!(await isAuthenticated())) {
+        return redirectToLogin();
+    }
 
-            const method = storedMethod === "Usdt" ? 'usdt' : storedMethod;
+    const accessToken = getCookie("accessToken");
+    const storedMethod = localStorage.getItem("paymentMethod");
+    const amt = localStorage.getItem("depositAmt");
 
-            if(!method){
-                iziToast.error({
-                    title: 'Error',
-                    message: "No Valid Method",
-                    position: 'topRight',
-                });
-                return;
-            
-            }
+    const method = storedMethod?.toLowerCase() === "usdt" ? "usdt" : null;
 
-            const data = {
-                amount: Number(amt),
-                method: method
-            }
-            console.log(data)
+    if (!method || !amt) {
+        iziToast.error({
+            title: "Error",
+            message: "Invalid or missing payment method or amount.",
+            position: "topRight",
+        });
+        return;
+    }
 
-            const response = await fetch(baseUrl + "fund-wallet", {
-                method: "POST",
-                mode: 'cors',
-                headers:{
-                    'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    
-                },
-                body: JSON.stringify(data),
-                credentials: 'include',
-            });
-            
-            if(!response.ok){
-               iziToast.error({
-                    title: 'Error',
-                    message: `Error: ${response.status} - ${response.statusText}`,
-                    position: 'topRight',
-                });
-                return; 
-            }
-            
-            const result = await response.json();
-            localStorage.removeItem("paymentMethod");
-            iziToast.success({
-                title: 'Success',
-                message: result.message || "Deposit is now being processed!!",
-                position: 'topRight',
-            });
-            // displaysuccess("Deposit is now being processed!!" || result.message)
-            // window.location.href = "../dashboard/dashboard.html"
-            // return;
-            
+    const data = {
+        amount: Number(amt),
+        method,
+    };
 
-        } catch (error) {
-            console.log(error)
+    try {
+        const response = await fetch(`${baseUrl}fund-wallet`, {
+            method: "POST",
+            mode: "cors",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json",
+                "AccessToken": accessToken,
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
             iziToast.error({
-                title: 'Error',
-                message: "An unexpected error occurred. Please try again.",
-                position: 'topRight',
+                title: "Error",
+                message: `Error: ${response.status} - ${response.statusText}`,
+                position: "topRight",
             });
-            // return error;
+            return;
         }
-    }else{
-        redirectToLogin();
+
+        const result = await response.json();
+        localStorage.removeItem("paymentMethod");
+
+        iziToast.success({
+            title: "Success",
+            message: result.message || "Deposit is now being processed!",
+            position: "topRight",
+        });
+
+        window.location.href = "../components/deposit-log.html";
+
+    } catch (error) {
+        console.error(error);
+        iziToast.error({
+            title: "Error",
+            message: "An unexpected error occurred. Please try again.",
+            position: "topRight",
+        });
     }
 }
+

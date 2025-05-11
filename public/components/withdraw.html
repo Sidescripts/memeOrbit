@@ -452,7 +452,7 @@
                 
                 try {
 
-                    const response = await fetch("/api/v1/user/dashboard", {
+                    const response = await fetch("/api/v1/m/dashboard", {
                         method: 'GET',
                         mode: 'cors',
                         headers: {
@@ -465,7 +465,7 @@
 
 
                     const data = await response.json();
-
+                    // console.log(data)
                     const {
                         walletBalance,
                     } = data.data;
@@ -482,7 +482,6 @@
 
         }
     </script>
-    <!-- <script src="../scripts/main.js"></script> -->
     <script src="../scripts/withdrawal.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>

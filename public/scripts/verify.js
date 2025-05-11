@@ -8,19 +8,20 @@ window.onload = async () => {
   const statusMessage = document.getElementById("statusMessage");
   const closeButton = document.getElementById("closeButton");
 
-  const data =  {
+  const payload = {
     email,
     verificationToken: token
-  }
+  };
 
   try {
     const response = await fetch(`api/v1/auth/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        credentials: 'include'
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'include'
     });
-    const data = await response.json();
+
+    const result = await response.json();
 
     if (response.ok) {
       statusTitle.textContent = "Congratulations!";
@@ -28,14 +29,15 @@ window.onload = async () => {
       closeButton.style.display = "inline-block";
     } else {
       statusTitle.textContent = "Verification Failed";
-      statusMessage.textContent = data.error || "Invalid or expired verification link.";
+      statusMessage.textContent = result.error || "Invalid or expired verification link.";
     }
   } catch (error) {
+    console.error(error);
     statusTitle.textContent = "Error";
     statusMessage.textContent = "Unable to connect to server. Please try again later.";
   }
 };
 
 function redirect() {
-  window.location.href = "../pages/login.html"; // Change to your login page path
+  window.location.href = "../pages/login.html"; // Update if needed
 }
