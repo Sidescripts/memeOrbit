@@ -33,9 +33,10 @@ const getConversionRate = async (method) => {
     if (method === "btc") {
         conversionRate = response.data.bitcoin.usd; // Adjust based on the API's BTC response structure
     } else if (method === "eth") {
-        conversionRate = response.data.ethereum; // Adjust based on the API's ETH response structure
+        conversionRate = response.data.ethereum.usd; // Adjust based on the API's ETH response structure
     } else if (method === "usdt") {
-        conversionRate = 1; // USDT is pegged to USD
+        conversionRate = response.data.tether.usd; // USDT is pegged to USD
+        conversionRate = 1;
     }
 
     return parseFloat(conversionRate);
@@ -101,7 +102,7 @@ const fundWallet = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error handling deposit:", error);
+        console.log("Error handling deposit:", error);
         return res.status(500).json({ error: "An error occurred while processing the deposit" });
     }
 };

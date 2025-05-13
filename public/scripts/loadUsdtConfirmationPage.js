@@ -43,7 +43,7 @@ async function usdtDeposit() {
         amount: Number(amt),
         method,
     };
-
+    console.log(data)
     try {
         const response = await fetch(`${baseUrl}fund-wallet`, {
             method: "POST",
@@ -77,6 +77,7 @@ async function usdtDeposit() {
         window.location.href = "../components/deposit-log.html";
 
     } catch (error) {
+        console.log(error)
         console.error(error);
         iziToast.error({
             title: "Error",
@@ -85,4 +86,3 @@ async function usdtDeposit() {
         });
     }
 }
-
