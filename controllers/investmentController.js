@@ -51,10 +51,10 @@ async function createInvestment(req,res) {
             default:
                 return res.status(400).json({ message: "Invalid plan selected." });
         }
-        console.log(duration)
+        // console.log(duration)
         
         const investmentDate = new Date();
-        console.log(investmentDate)
+        // console.log(investmentDate)
         
         // // Deduct investment amount from walletBalance
         if (amount > user.walletBalance) {
@@ -204,14 +204,10 @@ const adminUpdateInvestment = async (req, res) => {
             return res.status(404).json({ msg: `Investment with ID ${investmentId} not found` });
         }
 
-        // if (investment.userId !== userId) {
-        //     return res.status(403).json({ msg: `You are not authorized to update this investment` });
-        // }
-
         if (investment.status !== 'ongoing') {
             return res.status(400).json({ msg: 'Investment is already completed' });
         }
-
+        console.log(investment)
         const { investmentDate, amount, plans } = investment;
 
         if (!investmentDate) {
@@ -250,17 +246,12 @@ const adminUpdateInvestment = async (req, res) => {
 
         const roi = parseFloat(amount) * 5;
 
-        // Update investment
-        await investment.update({
-            status: 'completed',
-            returnOnInvestment: roi,
-        });
-
-        // Update user wallet
-        await user.update({
-            walletBalance: parseFloat(user.walletBalance) + roi,
-        });
-
+        investment.status = 'completed',
+        investment.returnOnInvestment += roi
+        await investment.save();
+        user.walletBalance += roi
+        await user.save();
+        
         return res.status(200).json({
             msg: 'Investment successfully updated',
             updatedInvestment: {
@@ -279,6 +270,133 @@ const adminUpdateInvestment = async (req, res) => {
         console.error(error);
         return res.status(500).json({ msg: 'Server error', error: error.message });
     }
+};
+
+
+// Configuration object for investment plans and durations
+const PLAN_CONFIG = {
+  'basic plan': { durationHours: 24, name: 'Basic Plan' },
+  'moon plan': { durationHours: 48, name: 'Moon Plan' },
+  'boom plan': { durationHours: 72, name: 'Boom Plan' },
+};
+
+// Constants
+const ROI_MULTIPLIER = 5; // 500% return on investment
+const STATUS_ONGOING = 'ongoing';
+const STATUS_COMPLETED = 'completed';
+
+// Helper functions
+const getPlanConfig = (plan) => {
+  const normalizedPlan = plan?.toLowerCase();
+  return PLAN_CONFIG[normalizedPlan] || null;
+};
+
+const calculateExpirationTime = (investmentDate, durationHours) => {
+  if (!investmentDate) throw new Error('Investment date is missing');
+  return new Date(investmentDate).getTime() + durationHours * 60 * 60 * 1000;
+};
+
+const validateInvestment = (investment) => {
+  if (!investment) {
+    throw new Error('Investment not found');
+  }
+  if (investment.status !== STATUS_ONGOING) {
+    throw new Error('Investment is already completed');
+  }
+};
+
+const validateUser = (user) => {
+  if (!user) {
+    throw new Error('User not found');
+  }
+};
+
+const calculateRoi = (amount) => {
+  const parsedAmount = parseFloat(amount);
+  if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    throw new Error('Invalid investment amount');
+  }
+  return parsedAmount * ROI_MULTIPLIER;
+};
+
+// Main function
+const adminUpdateInvestmentl = async (req, res) => {
+  const { investmentId } = req.params;
+  const userId = req.user; // Assumed to be set by authMiddleware
+
+  try {
+    // Fetch investment
+    const investment = await Investment.findByPk(investmentId);
+    validateInvestment(investment);
+
+    const { investmentDate, amount, plans } = investment;
+
+    // Validate plan and get duration
+    const planConfig = getPlanConfig(plans);
+    if (!planConfig) {
+      return res.status(400).json({ message: `Invalid plan: ${plans}` });
+    }
+
+    // Check if duration has been reached
+    const expirationTime = calculateExpirationTime(investmentDate, planConfig.durationHours);
+    const currentTime = Date.now();
+
+    if (currentTime < expirationTime) {
+      const remainingMs = expirationTime - currentTime;
+      const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000));
+      return res.status(400).json({
+        message: `Investment duration for ${planConfig.name} has not been completed. ${remainingHours} hours remaining.`,
+      });
+    }
+
+    // Fetch user
+    const user = await findUserById({ userId }); // Assumes findUserById is defined
+    validateUser(user);
+
+    // Calculate ROI
+    const roi = calculateRoi(amount);
+
+    // Update investment and user wallet in a transaction
+    await Investment.sequelize.transaction(async (t) => {
+      await investment.update(
+        {
+          status: STATUS_COMPLETED,
+          returnOnInvestment: roi,
+        },
+        { transaction: t }
+      );
+
+      await user.update(
+        {
+          walletBalance: parseFloat(user.walletBalance || 0) + roi,
+        },
+        { transaction: t }
+      );
+    });
+
+    // Prepare response
+    const responseData = {
+      message: 'Investment successfully updated',
+      updatedInvestment: {
+        email: user.email,
+        investmentId: investment.investmentId,
+        status: investment.status,
+        returnOnInvestment: investment.returnOnInvestment,
+        duration: planConfig.durationHours,
+        plan: planConfig.name,
+        amount: parseFloat(amount),
+        date: investmentDate,
+      },
+    };
+
+    return res.status(200).json(responseData);
+
+  } catch (error) {
+    console.error('Error updating investment:', error);
+    return res.status(error.message.includes('not found') ? 404 : 500).json({
+      message: error.message || 'Server error',
+    });
+  }
 };
 
 
