@@ -58,7 +58,7 @@ const getAndUpdateDashboard = async (req, res) => {
     });
     
   } catch (error) {
-    console.error("Error fetching or updating dashboard:", error.message);
+    console.error("Error fetching or updating dashboard:", error);
     return res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };

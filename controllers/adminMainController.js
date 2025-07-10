@@ -82,7 +82,7 @@ const addDeposit = async (req, res) => {
         const { amount } = req.body;
 
         const approvedAmount = parseFloat(amount);
-        console.log("Received amount:", approvedAmount);
+        // console.log("Received amount:", approvedAmount);
 
         // Validate amount
         if (isNaN(approvedAmount) || approvedAmount <= 0) {

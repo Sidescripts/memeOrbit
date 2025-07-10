@@ -1,137 +1,107 @@
 const baseUrl = "/api/v1/withdrawal/";
 
-// withdrawal history
-document.addEventListener("DOMContentLoaded", () => {
-        const tableBody = document.querySelector(".site-table tbody");
-
-        // Function to fetch and populate withdrawal history
-        const fetchWithdrawalHistory = async () => {
-            
-            if(await isAuthenticated()){
-                const accessToken = getCookie("accessToken");
-                
-        
-                try {
-                    // Show loading state
-                    tableBody.innerHTML = `<tr>
-                        <td colspan="100%" class="text-center">Loading...</td>
-                    </tr>`;
-
-                    // Fetch data from the server
-                    const response = await fetch(baseUrl + "withdrawal-history", {
-                        method: 'GET',
-                        mode: 'cors',
-                        headers:{
-                            'Content-Type': 'application/json',
-                            'AccessToken': accessToken
-                            
-                        },
-                        credentials: 'include'
-                    });
-                    if (!response.ok) throw new Error("Failed to fetch withdrawal history");
-
-                    const data = await response.json();    
-                    
-                    const {
-                        withdrawals
-                    }   = data
-                    // Check if there are records to display
-                    if (withdrawals.length === 0) {
-                        tableBody.innerHTML = `<tr>
-                            <td colspan="100%" class="text-center">No data found</td>
-                        </tr>`;
-                        return;
-                    }
-                    
-                    // Populate the table
-                tableBody.innerHTML = withdrawals.map((entry) => `
-                    
-                    <tr>
-                        <td>${entry.trxnId}</td>
-                        <td>${new Date(entry.date).toLocaleDateString()}</td>
-                        <td>${entry.method}</td>
-                        <td>${entry.amount}</td>
-                        <td>${entry.euEquAmount}</td>
-                        <td>${entry.walletAdd}</td>
-                        <td>${entry.status}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary">View</button>
-                        </td>
-                    </tr>
-                `).join("");
-
-
-                
-                } catch (error) {
-                    // Handle errors
-                console.error(error);
-                tableBody.innerHTML = `<tr>
-                    <td colspan="100%" class="text-center">Failed to load data</td>
-                </tr>`;    
-                }
-
-            }else{
-                redirectToLogin()
-            }
-        };
-
-        // Fetch the withdrawal history when the page loads
-        fetchWithdrawalHistory();
+document.addEventListener('DOMContentLoaded', function() {
+    if (!isLoggedIn()) {
+        redirectToLogin();
+        return;
+    }
+    
+    loadWithdrawalHistory();
 });
 
-async function witHistory(){
+async function loadWithdrawalHistory() {
     const tableBody = document.querySelector("#witHistory tbody");
-    tableBody.innerHTML = `<tr><td colspan="6">Loading...</td></tr>`;
+    if (!tableBody) return;
 
-     if (await isAuthenticated()) {
-        const accessToken = getCookie("accessToken");
+    showLoading(tableBody);
 
-        try {
-            const response = await fetch(baseUrl + "withdrawal-history",{
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'AccessToken': accessToken
-                },
-                credentials: 'include'
-            });
-
-            const data = await response.json();
-            console.log(data)
-            const { deposit } = data;
-            
-
-            tableBody.innerHTML = ''; // clear loading text
-
-            if (!deposit || deposit.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6">No withdrawal  records found.</td></tr>`;
-                return;
-            }
-
-            deposit.forEach(record => {
-                const formattedDate = new Date(record.createdAt).toLocaleDateString();
-
-                const row = `
-                    <tr>
-                        <td>${formattedDate}</td>
-                        <td>${record.trxnId || '-'}</td>
-                        <td>${record.method || '-'}</td>
-                        <td>${record.amount ? `${parseFloat(record.amount).toFixed(2)}` : '-'}</td>
-                        <td>${record.euEquAmount ? `$${parseFloat(record.euEquAmount).toFixed(2)}` : '-'}</td>
-                        <td>${record.status === 'approved' ? 'Approved' : 'Pending'}</td>
-                    </tr>
-                `;
-
-                tableBody.insertAdjacentHTML('beforeend', row);
-            });
-
-        } catch (error) {
-            console.error(error);
-            tableBody.innerHTML = `<tr><td colspan="6">Error loading deposit history.</td></tr>`;
+    try {
+        const response = await authFetch(`${baseUrl}withdrawal-history`);
+        
+        if (!response) return; // authFetch handled redirect if needed
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to load withdrawal history');
         }
-    } else {
-        redirectToLogin();
+
+        const { withdrawals } = await response.json();
+        updateWithdrawalTable(withdrawals);
+
+    } catch (error) {
+        console.error('Withdrawal history error:', error);
+        showError(tableBody, error.message || 'Failed to load withdrawal history');
     }
 }
 
-window.onload = witHistory;
+function updateWithdrawalTable(data) {
+    const tableBody = document.querySelector("#witHistory tbody");
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7">No withdrawal records found.</td>
+            </tr>
+        `;
+        return;
+    }
+
+    data.forEach(record => {
+        const formattedDate = new Date(record.date || record.createdAt).toLocaleDateString();
+        const amount = record.amount ? parseFloat(record.amount).toFixed(2) : '-';
+        const euAmount = record.euEquAmount ? `$${parseFloat(record.euEquAmount).toFixed(2)}` : '-';
+        const status = record.status === 'approved' ? 'Approved' : 'Pending';
+        const wallet = record.walletAdd || '-';
+        const trxnId = record.trxnId || '-';
+        const method = record.method || '-';
+
+        const viewButton = record.trxnId ? `
+            <button class="btn btn-sm btn-primary" onclick="viewReceipt('${record.trxnId}')">
+                View
+            </button>
+        ` : '';
+
+        tableBody.insertAdjacentHTML('beforeend', `
+            <tr>
+                <td>${trxnId}</td>
+                <td>${formattedDate}</td>
+                <td>${method}</td>
+                <td>${amount}</td>
+                <td>${euAmount}</td>
+                <td>${wallet}</td>
+                <td class="status-${record.status}">${status}</td>
+                <td>${viewButton}</td>
+            </tr>
+        `);
+    });
+}
+
+function viewReceipt(transactionId) {
+    window.location.href = `${baseUrl}withdrawal-receipt/${transactionId}`;
+}
+
+// Reusable UI functions (can be shared across components)
+function showLoading(container) {
+    container.innerHTML = `
+        <tr>
+            <td colspan="8" class="loading">
+                <div class="spinner"></div>
+                Loading withdrawal history...
+            </td>
+        </tr>
+    `;
+}
+
+function showError(container, message) {
+    container.innerHTML = `
+        <tr>
+            <td colspan="8" class="error">
+                ${message}
+                <button onclick="loadWithdrawalHistory()">Retry</button>
+            </td>
+        </tr>
+    `;
+}

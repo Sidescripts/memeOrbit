@@ -61,20 +61,12 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .error {
-        color: rgb(207, 22, 22);
-        margin-top: 5px;
-        font-size: 17px;
-        text-align: center;
-        text-transform: capitalize;
-    }
-
+    .error,
     .success {
-        color: rgb(12, 56, 12);
-        margin-top: 5px;
-        font-size: 17px;
-        text-align: center;
-        text-transform: capitalize;
+      margin-top: 10px;
+      font-size: 16px;
+      text-align: center;
+      text-transform: capitalize;
     }
 
     .icard-header {
@@ -104,6 +96,10 @@
     .icard-body.active {
         display: block;
         /* Show when active */
+    }
+
+    .hidden {
+        display: none;
     }
 
     .instruction-list {
@@ -352,8 +348,22 @@
         </section>
     </main>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cardHeader = document.querySelector('.icard-header.clickable');
+            const cardBody = document.querySelector('.icard-body');
+
+            cardHeader.addEventListener('click', function () {
+            cardBody.classList.toggle('active');
+            cardBody.classList.toggle('hidden');
+        });                                 
+        });
+
+    </script>
+
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/js/iziToast.min.js"></script> 
 
     <script>
         'use strict';

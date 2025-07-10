@@ -1,117 +1,149 @@
-const baseUrl = "/api/v1/auth/";
+const BASE_URL = "/api/v1/auth/";
+const ERROR_DISPLAY_DURATION = 7000;
 
-function clearErrors() {
-    const errMsg = document.getElementById('error-message');
-    errMsg.textContent = '';
-}
+// DOM Elements
+const elements = {
+    errorMessage: document.getElementById('error-message'),
+    successModal: document.getElementById("success-modal"),
+    modalOkButton: document.getElementById("modal-ok-btn"),
+    form: document.getElementById("form"),
+    signupButton: document.getElementById("sbtn"),
+    inputs: {
+        username: document.getElementById("usernameInput"),
+        email: document.getElementById("emailInput"),
+        password: document.getElementById("passwordInput"),
+        confirmPassword: document.getElementById("confirmPasswordInput"),
+        country: document.getElementById("countryInput")
+    }
+};
 
-function displayError(msg) {
-    const errMsg = document.getElementById("error-message");
-    errMsg.innerHTML += `<p class="text-center lead mb-4">${msg}</p>`;
-    setTimeout(clearErrors, 7000);
-}
+// Validation patterns
+const patterns = {
+    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+};
 
-function showSuccessModal() {
-    const modal = document.getElementById("success-modal");
-    modal.style.display = "block";
+// Utility functions
+const clearErrors = () => {
+    elements.errorMessage.textContent = '';
+};
 
-    const okayButton = document.getElementById("modal-ok-btn");
-    okayButton.addEventListener("click", () => {
-        modal.style.display = "none"; // Close the modal
-        window.location.href = "../pages/login.html"; // Redirect to login page
-    });
-}
+const displayError = (msg) => {
+    elements.errorMessage.innerHTML += `<p class="text-center lead mb-4">${msg}</p>`;
+    setTimeout(clearErrors, ERROR_DISPLAY_DURATION);
+};
 
-async function signupBtn() {
-    const usernameInput = document.getElementById("usernameInput");
-    const emailInput = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
-    const confirmPasswordInput = document.getElementById("confirmPasswordInput");
-    const countryInput = document.getElementById("countryInput");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const form = document.getElementById("form");
-    const btn = document.getElementById("sbtn");
+const showSuccessModal = () => {
+    elements.successModal.style.display = "block";
+    elements.modalOkButton.addEventListener("click", () => {
+        elements.successModal.style.display = "none";
+        window.location.href = "../dashboard/dashboard.html";
+    }, { once: true });
+};
 
-    let username = usernameInput.value.trim();
-    let email = emailInput.value.trim();
-    let password = passwordInput.value;
-    let confirmPassword = confirmPasswordInput.value;
-    let country = countryInput.value;
+const getFormData = () => {
+    return {
+        username: elements.inputs.username.value.trim(),
+        email: elements.inputs.email.value.trim(),
+        password: elements.inputs.password.value,
+        confirmPassword: elements.inputs.confirmPassword.value,
+        country: elements.inputs.country.value
+    };
+};
 
-    clearErrors();
-
+const validateFormData = ({ username, email, password, confirmPassword, country }) => {
     if (!username || !email || !password || !confirmPassword || !country) {
-        displayError('Please provide the needed value(s)');
-        return;
+        displayError('Please provide all required fields');
+        return false;
     }
 
-    if (!emailRegex.test(email)) {
-        displayError('Email is not valid!');
-        return;
+    if (!patterns.email.test(email)) {
+        displayError('Please enter a valid email address');
+        return false;
     }
 
     if (password.length < 8) {
-        displayError('Password should be at least 8 characters');
-        return;
+        displayError('Password must be at least 8 characters long');
+        return false;
     }
 
     if (password !== confirmPassword) {
-        displayError("Password and confirm password do not match");
-        return;
+        displayError("Passwords do not match");
+        return false;
     }
 
-    const data = {
-        username,
-        email,
-        password,
-        confirmPassword,
-        country
-    };
+    return true;
+};
 
-    btn.textContent = 'Please wait...';
-    btn.disabled = true;
-    form.disabled = true;
+const setLoadingState = (isLoading) => {
+    elements.signupButton.textContent = isLoading ? 'Please wait...' : 'Sign up';
+    elements.signupButton.disabled = isLoading;
+    elements.form.disabled = isLoading;
+};
+
+const resetForm = () => {
+    Object.values(elements.inputs).forEach(input => {
+        if (input.type !== 'submit') input.value = '';
+    });
+};
+
+const saveAuthDataToLocalStorage = (authData) => {
+    localStorage.setItem('username', authData.username);
+    localStorage.setItem('accessToken', authData.accessToken);
+    localStorage.setItem('refreshToken', authData.refreshToken);
+};
+
+const handleSignupSuccess = (responseData) => {
+    // Save auth data to localStorage
+    saveAuthDataToLocalStorage({
+        username: responseData.username || getFormData().username,
+        accessToken: responseData.accessToken,
+        refreshToken: responseData.refreshToken
+    });
+    
+    showSuccessModal();
+    resetForm();
+};
+
+const handleApiError = async (response) => {
+    try {
+        const errorData = await response.json();
+        displayError(errorData.message || 'Something went wrong');
+    } catch (e) {
+        console.log(e)
+        displayError('Failed to process error response');
+    }
+};
+
+// Main signup function
+const signup = async () => {
+    clearErrors();
+    const formData = getFormData();
+
+    if (!validateFormData(formData)) return;
+
+    setLoadingState(true);
 
     try {
-        const response = await fetch(baseUrl + 'signup', {
+        const response = await fetch(`${BASE_URL}signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
+            body: JSON.stringify(formData),
             credentials: 'include'
         });
 
-        if (!response.ok) {
-            const resp = await response.json();
-            // displayError(resp.msg || 'Something went wrong');
-            displayError(resp.message);
-            // console.log(resp)
-            btn.textContent = 'Sign up';
-            btn.disabled = false;
-            form.disabled = false;
-            return;
+        if (response.ok) {
+            const responseData = await response.json();
+            handleSignupSuccess(responseData);
+        } else {
+            await handleApiError(response);
         }
-
-        const resp = await response.json();
-
-        // Show success modal
-        showSuccessModal();
-
-        // Clear form inputs
-        usernameInput.value = '';
-        emailInput.value = '';
-        passwordInput.value = '';
-        confirmPasswordInput.value = '';
-        countryInput.value = '';
-
-        btn.textContent = 'Sign up';
-        btn.disabled = false;
-        form.disabled = false;
-
     } catch (error) {
-        console.error(error);
-        displayError("An error occurred!");
-        btn.textContent = 'Sign up';
-        btn.disabled = false;
-        form.disabled = false;
+        console.error('Signup error:', error);
+        displayError(error.message || "Network error. Please try again.");
+    } finally {
+        setLoadingState(false);
     }
-}
+};
+
+// Event listener assignment
+elements.signupButton.addEventListener('click', signup);

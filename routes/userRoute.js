@@ -5,9 +5,9 @@ const {handleChangePassword, handleChangeEmail} =require("../controllers/userCon
 const router = express.Router();
 
 
-router.get("/dashboard", authMiddleware,getAndUpdateDashboard)
-// router.get('/dashboard', test,authMiddleware,getAndUpdateDashboard);
+router.get("/dashboard", authMiddleware,getAndUpdateDashboard);
 router.patch("/change-password", authMiddleware,handleChangePassword);
-router.patch("/change-email", authMiddleware,handleChangeEmail)
+router.patch("/change-email", authMiddleware,handleChangeEmail);
+
 
 module.exports = router;

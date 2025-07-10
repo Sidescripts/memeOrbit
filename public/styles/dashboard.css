@@ -1,0 +1,125 @@
+/* Loading Spinner */
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+}
+
+.loading-spinner .spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--color-primary);
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error Message */
+.error-message {
+    display: none;
+    background-color: var(--color-danger);
+    color: white;
+    padding: 1rem;
+    border-radius: var(--border-radius-1);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Dashboard Cards */
+.user-account-number {
+    background: white;
+    border-radius: var(--card-border-radius);
+    padding: var(--card-padding);
+    box-shadow: var(--box-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.user-account-number i {
+    position: absolute;
+    top: 1.8rem;
+    right: 1.8rem;
+    font-size: 2rem;
+    color: rgba(0, 0, 0, 0.1);
+}
+
+.card-dot {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.card-dot span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot-1 {
+    background-color: var(--color-primary);
+}
+
+.dot-2 {
+    background-color: var(--color-success);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+    #header.header-inner-pages {
+        display: block;
+        background: transparent !important;
+        position: absolute;
+    }
+
+    .dashboard-body-part {
+        padding-top: 80px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-body-part::before {
+        position: absolute;
+        content: '';
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 160px;
+        background: linear-gradient(to top, #2f5b88, #153352);
+        z-index: -1;
+    }
+}
+
+/* Dark Mode Variables */
+.dark-mode-variables .user-account-number {
+    background: var(--color-white);
+    color: var(--color-dark);
+}
+
+.dark-mode-variables .error-message {
+    background-color: var(--color-danger);
+}
+
+.dark-mode-active {
+    background-color: #181a1e;
+    color: #edeffd;
+}
+
+.dark-mode-active .site-card {
+    background-color: #181a1e;
+    border: 1px solid #2a2d31;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode-active .mobile-bottom-menu-wrapper {
+    background-color: #181a1e;
+}
+
+.dark-mode-active .dashboard-body-part::before {
+    background: linear-gradient(to top, #000000, #101214) !important;
+}

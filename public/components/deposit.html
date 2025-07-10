@@ -23,6 +23,13 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Sharp" rel="stylesheet">
 </head>
 
+<style>
+    .hidden {
+        display: none;
+    }
+
+</style>
+
 <body>
 
 
@@ -284,20 +291,18 @@
     </main>
 
 
-    <!-- <script src="https://globe-asset.com/asset/theme3/frontend/js/jquery.min.js"></script>
-    <script src="https://globe-asset.com/asset/theme3/frontend/vendor/purecounter/purecounter.js"></script>
-    <script src="https://globe-asset.com/asset/theme3/frontend/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+    const cardHeader = document.querySelector('.icard-header.clickable');
+    const cardBody = document.querySelector('.icard-body');
 
-    <script src="https://globe-asset.com/asset/theme3/frontend/js/feather.min.js"></script>
+    cardHeader.addEventListener('click', function () {
+        cardBody.classList.toggle('active');
+        cardBody.classList.toggle('hidden');
+    });                                 
+});
 
-    <script src="https://globe-asset.com/asset/theme3/frontend/vendor/glightbox/js/glightbox.min.js"></script>
-    <script src="https://globe-asset.com/asset/theme3/frontend/vendor/php-email-form/validate.js"></script>
-    <script src="https://globe-asset.com/asset/theme3/frontend/js/selectric.min.js"></script>
-
-    <script src="https://globe-asset.com/asset/theme3/frontend/js/iziToast.min.js"></script>
-    <script src="https://globe-asset.com/asset/theme3/frontend/js/jquery.uploadPreview.min.js"></script>
-    <script src="https://globe-asset.com/asset/theme3/frontend/js/user_dashboard.js"></script> -->
-
+    </script>
 
     <script>
         $(function () {
@@ -335,7 +340,7 @@
                 localStorage.setItem("depositAmt", amount);
                 const method = localStorage.getItem("paymentMethod")
                 amount = "";
-                console.log(amount, method)
+                // console.log(amount, method)
                 if (method == "Bitcoin") {
                     window.location.href = "./btc-deposit-details.html"
                 

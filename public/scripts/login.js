@@ -1,106 +1,127 @@
-const baseUrl = "/api/v1/auth/";
+const BASE_URL = "/api/v1/auth/";
+const ERROR_DISPLAY_DURATION = 7000;
 
-function clearErrors(){
-    const errMsg = document.getElementById('error-message');
-    console.log(errMsg)
-    errMsg.textContent = ''
-}
-function displayError(msg){
-    const errMsg = document.getElementById("error-message");
-    errMsg.innerHTML += `<p class="text-center lead mb-4" >${msg}</p>`
-    setTimeout(clearErrors, 7000)
-}
-function setToken(val, expDur){
-    localStorage.setItem('accessToken', val)
-    localStorage.setItem('expires', expDur)
-}
+// DOM Elements
+const elements = {
+    errorMessage: document.getElementById('error-message'),
+    form: document.getElementById("form"),
+    loginButton: document.getElementById("lbtn"),
+    inputs: {
+        email: document.getElementById("emailInput"),
+        password: document.getElementById("passwordInput"),
+    }
+};
 
-async function loginFuction(){
-    const emaili = document.getElementById("emailInput");
-    const passwordi = document.getElementById("passwordInput");
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const btn = document.getElementById("lbtn");
+// Validation patterns
+const patterns = {
+    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+};
 
-    // console.log(usernamei)
-    let emailVal = emaili.value;
-    let passwordVal = passwordi.value;
+// Utility functions
+const clearErrors = () => {
+    elements.errorMessage.textContent = '';
+};
+
+const displayError = (msg) => {
+    elements.errorMessage.innerHTML += `<p class="text-center lead mb-4">${msg}</p>`;
+    setTimeout(clearErrors, ERROR_DISPLAY_DURATION);
+};
+
+const getFormData = () => {
+    return {
+        email: elements.inputs.email.value.trim(),
+        password: elements.inputs.password.value
+    };
+};
+
+const validateFormData = ({email, password }) => {
+    if (!email || !password) {
+        displayError('Please provide all required fields');
+        return false;
+    }
+
+    if (!patterns.email.test(email)) {
+        displayError('Please enter a valid email address');
+        return false;
+    }
+
+    if (password.length < 8) {
+        displayError('Password must be at least 8 characters long');
+        return false;
+    }
+    return true;
+};
+
+const setLoadingState = (isLoading) => {
+    elements.loginButton.textContent = isLoading ? 'Please wait...' : 'Login';
+    elements.loginButton.disabled = isLoading;
+    elements.form.disabled = isLoading;
+};
+
+const resetForm = () => {
+    Object.values(elements.inputs).forEach(input => {
+        if (input.type !== 'submit') input.value = '';
+    });
+};
+
+const saveAuthDataToLocalStorage = (authData) => {
+    localStorage.setItem('username', authData.username);
+    localStorage.setItem('accessToken', authData.accessToken);
+    localStorage.setItem('refreshToken', authData.refreshToken);
+};
+
+const handleSignupSuccess = (responseData) => {
+    // Save auth data to localStorage
+    saveAuthDataToLocalStorage({
+        username: responseData.username,
+        accessToken: responseData.accessToken,
+        refreshToken: responseData.refreshToken
+    });
     
-    // clearErrors();
+    window.location.href = "../dashboard/dashboard.html";
+    resetForm();
+};
 
-    // validate inputs
-    if(!emailVal || !passwordVal){
-        displayError('Please provide the needed value(s)')
-        return;
+const handleApiError = async (response) => {
+    try {
+        const errorData = await response.json();
+        displayError(errorData.message || 'Something went wrong');
+    } catch (e) {
+        console.log(e)
+        displayError('Failed to process error response');
     }
+};
 
-    if(!emailRegex.test(emailVal)){
-        displayError('Email is not valid!')
-        return;
-    }
+// Main login function
+const login = async () => {
+    clearErrors();
+    const formData = getFormData();
 
-    if(passwordVal.length < 8){
-        displayError('Password should be at least 8 characters')
-        return;
-    }
+    if (!validateFormData(formData)) return;
 
-    const data = {
-        email: emailVal,
-        password: passwordVal,
-    }
-
-    btn.textContent = 'Please wait.....';
-    btn.disabled = true;
+    setLoadingState(true);
 
     try {
-        const response = await fetch(baseUrl+'login', {
+        const response = await fetch(`${BASE_URL}login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
             credentials: 'include'
         });
-        if(!response.ok){
-            const resp = await response.json(); 
-            displayError(resp.msg);
-            
-            btn.textContent = 'Login';
-            btn.disabled = false;
-            return;
-        }
-    
-        if(response.ok){
-            const resp = await response.json();
 
-            const accessToken = resp.accessToken;
-            const refreshToken = resp.refreshToken;
-
-            const expiraionTime = new Date();
-            expiraionTime.setTime(expiraionTime.getTime() + (1 * 24 *60 * 60))
-
-            
-            document.cookie = `accessToken=${accessToken}; expires=${expiraionTime.toUTCString()}; path=/; `;
-            document.cookie = `refreshToken=${refreshToken}; expires=${expiraionTime.toUTCString()}; path=/; `;
-            
-            // success modal
-            window.location.href = "../dashboard/dashboard.html"
-            
-            emailVal = '',
-            passwordVal = '',
-        
-
-            btn.textContent = 'Login';
-            btn.disabled = false;
-           
-            return  true;
-        }else{
-            return false;
+        if (response.ok) {
+            const responseData = await response.json();
+            handleSignupSuccess(responseData);
+        } else {
+            await handleApiError(response);
         }
     } catch (error) {
-        console.log(error)    
-        btn.textContent = 'Login';
-        btn.disabled = false;
-        displayError("Error occurred!!")
+        console.error('Login error:', error);
+        displayError(error.message || "Network error. Please try again.");
+    } finally {
+        setLoadingState(false);
     }
+};
 
-}
+// Event listener assignment
+elements.loginButton.addEventListener('click', login);

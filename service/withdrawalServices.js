@@ -35,7 +35,7 @@ const findAllWithdrawalForUser = async({userId}) =>{
         const withdrawals = await Withdrawal.findAll({ where: { userId } });
         return withdrawals;
     } catch (error) {
-        throw new Error('Error occurred: ',error.message )
+        throw new Error(`Error occurred:, ${error}`)
         
     }
 }
@@ -46,7 +46,7 @@ const findWithdrawalByTrxId = async({trxnId}) =>{
         if (!withdrawal) throw new Error("Withdrawal not found");
         return withdrawal;
     } catch (error) {
-        throw new Error('Error occurred: ',error.message )
+        throw new Error('Error occurred: ', + error )
         
     }
 }

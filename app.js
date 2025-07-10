@@ -16,9 +16,9 @@ const db =  require("./models")
 const app = express();
 
 const allowedOrigins = [  
-    'https://meme-orbit-admin.netlify.app',
+    "https://meme-orbit-admin.netlify.app",
+    // https://meme-orbit-admin.netlify.app
     "http://localhost:5501"
-
 ];
 
 const corsOpt = {
@@ -39,7 +39,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/withdrawal', withdrawalRouter);
 app.use('/api/v1/deposit', depositRouter);
 app.use('/api/v1/investment', investmentRouter);
-app.use('/api/v1/m', mainRouter);
+app.use('/api/v1/user', mainRouter);
 app.use("/api/v1/admin", adminRouter);
 
 app.get("/health-check", (req,res) =>{
@@ -53,25 +53,25 @@ app.get("/health-check", (req,res) =>{
 const port = process.env.PORT || 3040;
 
 //for prod
-db.sequelize.sync({alter: true}).then(() =>{
-    console.log("Db synced")
-    app.listen(port,()=>{
-        console.log(`Server has started on port ${port}.`)
-        console.log(`You are live now`)
-    });
-}).catch(err =>{
-    console.error("sync error occurred:", err)
-});
+// db.sequelize.sync({alter: true}).then(() =>{
+//     console.log("Db synced")
+//     app.listen(port,()=>{
+//         console.log(`Server has started on port ${port}.`)
+//         console.log(`You are live now`)
+//     });
+// }).catch(err =>{
+//     console.error("sync error occurred:", err)
+// });
 
 //for local
-// async function startServer(){
-//     try {
-//         app.listen(port,()=>{
-//             console.log(`server started on port ${port}`)
-//         });
-//     } catch (error) {
-//         console.log(error);
-//     }
-// }
+async function startServer(){
+    try {
+        app.listen(port,()=>{
+            console.log(`server started on port ${port}`)
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
 
-// startServer();
+startServer();

@@ -191,27 +191,32 @@ async function getOneInvestment(req,res) {
 
 
 const adminUpdateInvestment = async (req, res) => {
-    const userId = req.user;
-    const { investmentId } = req.params;
-
+    
+    const  {investmentId}  = req.params;
+    
     try {
-        // const investment = await findInvestmentById(investmentId);
+        
+        const i = await Investment.findOne({ where: { id:  investmentId} });
+        
+        // console.log(i)
 
-        const investment = await Investment.findByPk(investmentId);
-
-
-        if (!investment) {
+        if (!i) {
             return res.status(404).json({ msg: `Investment with ID ${investmentId} not found` });
         }
 
-        if (investment.status !== 'ongoing') {
+        if (i.status !== 'ongoing') {
             return res.status(400).json({ msg: 'Investment is already completed' });
         }
-        console.log(investment)
-        const { investmentDate, amount, plans } = investment;
+        
+        const { investmentDate, amount, plans, userId } = i;
+        // console.log(investmentDate, amount, plans, userId)
 
         if (!investmentDate) {
             return res.status(400).json({ msg: 'Investment date is missing' });
+        }
+
+        if (!userId) {
+            return res.status(400).json({ msg: 'Incorrect UserId' });
         }
 
         // Set duration based on plan
@@ -237,18 +242,19 @@ const adminUpdateInvestment = async (req, res) => {
             return res.status(400).json({ msg: 'Investment duration has not been completed yet' });
         }
 
-        // Find user
-        const user = await findUserById({ userId });
+        
+        let user = await User.findOne({ where: { id: userId } });
 
         if (!user) {
             return res.status(404).json({ msg: `User with ID ${userId} not found` });
         }
-
+        // console.log(user)
         const roi = parseFloat(amount) * 5;
 
-        investment.status = 'completed',
-        investment.returnOnInvestment += roi
-        await investment.save();
+        i.status = 'completed',
+        i.returnOnInvestment += roi
+        await i.save();
+
         user.walletBalance += roi
         await user.save();
         
@@ -256,12 +262,12 @@ const adminUpdateInvestment = async (req, res) => {
             msg: 'Investment successfully updated',
             updatedInvestment: {
                 email: user.email,
-                investmentId: investment.investmentId,
-                status: investment.status,
-                returnOnInvestment: investment.returnOnInvestment,
-                duration: investment.duration,
-                plan: investment.plan,
-                amount: investment.amount,
+                investmentId: i.investmentId,
+                status: i.status,
+                returnOnInvestment: i.returnOnInvestment,
+                duration: i.duration,
+                plan: i.plan,
+                amount: i.amount,
                 date: investmentDate
             }
         });
@@ -318,87 +324,6 @@ const calculateRoi = (amount) => {
   }
   return parsedAmount * ROI_MULTIPLIER;
 };
-
-// Main function
-const adminUpdateInvestmentl = async (req, res) => {
-  const { investmentId } = req.params;
-  const userId = req.user; // Assumed to be set by authMiddleware
-
-  try {
-    // Fetch investment
-    const investment = await Investment.findByPk(investmentId);
-    validateInvestment(investment);
-
-    const { investmentDate, amount, plans } = investment;
-
-    // Validate plan and get duration
-    const planConfig = getPlanConfig(plans);
-    if (!planConfig) {
-      return res.status(400).json({ message: `Invalid plan: ${plans}` });
-    }
-
-    // Check if duration has been reached
-    const expirationTime = calculateExpirationTime(investmentDate, planConfig.durationHours);
-    const currentTime = Date.now();
-
-    if (currentTime < expirationTime) {
-      const remainingMs = expirationTime - currentTime;
-      const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000));
-      return res.status(400).json({
-        message: `Investment duration for ${planConfig.name} has not been completed. ${remainingHours} hours remaining.`,
-      });
-    }
-
-    // Fetch user
-    const user = await findUserById({ userId }); // Assumes findUserById is defined
-    validateUser(user);
-
-    // Calculate ROI
-    const roi = calculateRoi(amount);
-
-    // Update investment and user wallet in a transaction
-    await Investment.sequelize.transaction(async (t) => {
-      await investment.update(
-        {
-          status: STATUS_COMPLETED,
-          returnOnInvestment: roi,
-        },
-        { transaction: t }
-      );
-
-      await user.update(
-        {
-          walletBalance: parseFloat(user.walletBalance || 0) + roi,
-        },
-        { transaction: t }
-      );
-    });
-
-    // Prepare response
-    const responseData = {
-      message: 'Investment successfully updated',
-      updatedInvestment: {
-        email: user.email,
-        investmentId: investment.investmentId,
-        status: investment.status,
-        returnOnInvestment: investment.returnOnInvestment,
-        duration: planConfig.durationHours,
-        plan: planConfig.name,
-        amount: parseFloat(amount),
-        date: investmentDate,
-      },
-    };
-
-    return res.status(200).json(responseData);
-
-  } catch (error) {
-    console.error('Error updating investment:', error);
-    return res.status(error.message.includes('not found') ? 404 : 500).json({
-      message: error.message || 'Server error',
-    });
-  }
-};
-
 
 module.exports = {
     createInvestment,

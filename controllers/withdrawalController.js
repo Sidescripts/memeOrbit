@@ -47,6 +47,7 @@ async function requestWithdrawal(req, res) {
       return res.status(400).json({ error: "Please provide all required fields: amount, method, and wallet address." });
     }
 
+    // let user = await User.findOne({ where: { id: userId } });
     const user = await findUserById({ userId });
     
     if (!user) {
@@ -54,6 +55,7 @@ async function requestWithdrawal(req, res) {
     }
 
     const recentInvestment = await findMostRecentCompletedInvestment({ userId });
+    
     if (!recentInvestment) {
       return res.status(400).json({ error: "No recent investment found." });
     }

@@ -7,15 +7,3 @@ const hashString = (string) =>{
 
 
 module.exports = hashString;
-// "production": {
-  //   "username": "u1y8rtzutofew04s",
-  //   "password": "QOZd31eLnOno6rFjYtWX",
-  //   "port": 3306,
-  //   "database": "bghtrd5f1anskvvzlrmo",
-  //   "host": "bghtrd5f1anskvvzlrmo-mysql.services.clever-cloud.com",
-  //   "dialect": "mysql"
-  // },
-// "production": {
-//     "use_env_variable": "mysql://u1y8rtzutofew04s:QOZd31eLnOno6rFjYtWX@bghtrd5f1anskvvzlrmo-mysq",
-//     "dialect": "mysql"
-//   }

@@ -11,7 +11,7 @@ const { User } = require('../models');
 */
 
 
-const createUser = async ({ username, email, password,country, verificationToken }) => {
+const createUser = async ({ username, email, password,country }) => {
     // Check if the user already exists
     const existingEmail = await User.findOne({ where: { email } });
     const existingUsername = await User.findOne({where: {username}})
@@ -21,7 +21,7 @@ const createUser = async ({ username, email, password,country, verificationToken
     }
 
     if (existingUsername) {
-        throw new Error('Email is already in use');
+        throw new Error('Username is already in use');
     }
 
     // Hash the password (optional, using bcrypt for example)
@@ -34,8 +34,7 @@ const createUser = async ({ username, email, password,country, verificationToken
         username,
         email,
         password: hashedPassword,
-        country,
-        verificationToken
+        country
     });
 
     return user;

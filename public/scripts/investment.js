@@ -1,10 +1,43 @@
 const baseUrl = "/api/v1/investment/";
+const PLAN_DURATIONS = {
+  "basic plan": 24,
+  "moon plan": 48,
+  "boom plan": 72
+};
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', function() {
+  if (!isLoggedIn()) {
+    redirectToLogin();
+    return;
+  }
+
+  initInvestmentForm();
+});
+
+function initInvestmentForm() {
   const appendDataContainer = document.querySelector(".appendData");
   const methodSelect = document.querySelector('select[name="method"]');
 
-  const additionalFields = `
+  if (!appendDataContainer || !methodSelect) return;
+
+  methodSelect.addEventListener("change", handlePlanSelection);
+}
+
+function handlePlanSelection(event) {
+  const appendDataContainer = document.querySelector(".appendData");
+  const selectedPlan = event.target.value;
+
+  if (!selectedPlan) {
+    appendDataContainer.innerHTML = "";
+    return;
+  }
+
+  appendDataContainer.innerHTML = getInvestmentFormFields();
+  setupInvestmentFormHandlers();
+}
+
+function getInvestmentFormFields() {
+  return `
     <div class="col-md-12 mb-3 mt-3">
       <label for="amount">Amount <span class="sp_text_danger">*</span></label>
       <input type="text" name="amount" id="amount" class="form-control amount" required>
@@ -17,76 +50,117 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="col-md-12">
       <button id="submitBtn" class="btn main-btn plan-btn w-100" type="button">Proceed</button>
     </div>
+    <div id="errorMsg" class="col-md-12 mt-2"></div>
+    <div id="successMsg" class="col-md-12 mt-2"></div>
   `;
+}
 
-  methodSelect.addEventListener("change", () => {
-    const selectedPlan = methodSelect.value;
-    appendDataContainer.innerHTML = selectedPlan ? additionalFields : "";
-    if (selectedPlan) attachDynamicHandlers();
+function setupInvestmentFormHandlers() {
+  const amountInput = document.getElementById("amount");
+  const durationInput = document.getElementById("duration");
+  const submitButton = document.getElementById("submitBtn");
+  const methodSelect = document.querySelector('select[name="method"]');
+
+  if (!amountInput || !durationInput || !submitButton || !methodSelect) return;
+
+  amountInput.addEventListener("input", () => {
+    const plan = methodSelect.value;
+    durationInput.value = PLAN_DURATIONS[plan] || '';
   });
 
-  function attachDynamicHandlers() {
-    const amountInput = document.getElementById("amount");
-    const durationInput = document.getElementById("duration");
-    const submitButton = document.getElementById("submitBtn");
+  submitButton.addEventListener("click", () => {
+    processInvestmentCreation();
+  });
+}
 
-    amountInput.addEventListener("input", () => {
-      const plan = methodSelect.value;
-      const durations = {
-        "basic plan": 24,
-        "moon plan": 48,
-        "boom plan": 72
-      };
-      durationInput.value = durations[plan] || '';
-    });
+async function processInvestmentCreation() {
+  const amountInput = document.getElementById("amount");
+  const methodSelect = document.querySelector('select[name="method"]');
+  
+  if (!amountInput || !methodSelect) return;
 
-    submitButton.addEventListener("click", async () => {
-      const amount = parseFloat(amountInput.value.trim()) || 0;
-      const plan = methodSelect.value;
+  const amount = parseFloat(amountInput.value.trim()) || 0;
+  const plan = methodSelect.value;
 
-      if (!plan || !amount) {
-        return displayMessage("errorMsg", "All fields are required!");
-      }
+  try {
+    validateInvestmentInput(plan, amount);
+    const result = await createInvestment(plan, amount);
+    handleInvestmentSuccess(result);
+  } catch (error) {
+    console.log(error)
+    handleInvestmentError(error);
+  }
+}
 
-      if (!(await isAuthenticated())) {
-        return redirectToLogin();
-      }
-
-      const accessToken = getCookie("accessToken");
-
-      try {
-        const response = await fetch(`${baseUrl}create`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'AccessToken': accessToken,
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-          },
-          credentials: "include",
-          body: JSON.stringify({ plans: plan, amount })
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-          return displayMessage("errorMsg", result.error || "An error occurred. Please try again.");
-        }
-
-        displayMessage("successMsg", result.message || "Proud Investor");
-        window.location.href = "../components/invest-log.html";
-
-      } catch (error) {
-        console.error(error);
-        displayMessage("errorMsg", "Unexpected error occurred!");
-      }
-    });
+function validateInvestmentInput(plan, amount) {
+  if (!plan || !amount) {
+    throw new Error("All fields are required");
   }
 
-  function displayMessage(elementId, message) {
-    const el = document.getElementById(elementId);
-    if (el) {
-      el.textContent = message;
-      setTimeout(() => { el.textContent = ""; }, 5000);
-    }
+  if (amount <= 0) {
+    throw new Error("Amount must be greater than zero");
   }
-});
+
+  if (!PLAN_DURATIONS[plan]) {
+    throw new Error("Invalid investment plan selected");
+  }
+}
+
+async function createInvestment(plan, amount) {
+  const accessToken = getAccessToken();
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+  const response = await fetch(`${baseUrl}create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${accessToken}`,
+      'X-CSRF-TOKEN': csrfToken
+    },
+    credentials: "include",
+    body: JSON.stringify({ plans: plan, amount })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || "Failed to create investment");
+  }
+
+  return await response.json();
+}
+
+function handleInvestmentSuccess(result) {
+  showToast({
+    type: 'success',
+    title: 'Success',
+    message: result.message || "Investment created successfully"
+  });
+  
+  setTimeout(() => {
+    window.location.href = "../components/invest-log.html";
+  }, 1500);
+}
+
+function handleInvestmentError(error) {
+  console.error('Investment error:', error);
+  showToast({
+    type: 'error',
+    title: 'Error',
+    message:  error.message || "Failed to create investment"
+  });
+}
+
+// Reusable toast notification
+function showToast({ type, title, message }) {
+  const toastOptions = {
+      title: title,
+      message: message,
+      position: 'topRight'
+  };
+  
+  if (type === 'success') {
+      iziToast.success(toastOptions);
+  } else {
+      iziToast.error(toastOptions);
+  }
+}

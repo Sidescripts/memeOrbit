@@ -1,111 +1,76 @@
-// const baseUrl = "/api/v1/m/dashboard";
-
-// async function dashboard(){
-//     let walletBalI = document.getElementById("accBalance");
-//     let currentInvestI = document.getElementById("currentInvest");
-//     let totalWithI = document.getElementById("totalWith");
-//     let totalDepoI = document.getElementById("totDeposit")
-//     let totalInvestI = document.getElementById("totInvest");
-
-
-//     if(await isAuthenticated()){
-//         const accessToken = getCookie("accessToken")
-        
-        
-//         try {
-            
-//             const response = await fetch(baseUrl, {
-//                 method: 'GET',
-//                 mode: 'cors',
-//                 headers:{
-//                     'Content-Type': 'application/json',
-//                     'AccessToken': accessToken
-//                 },
-//                 credentials: 'include',
-//             });
-            
-
-//             const data = await response.json();
-//             // console.log(data)
-            
-//             if(!response.ok){
-//                 throw new Error("Request Error!") 
-//             }
-            
-//             const {
-//                 walletBalance,
-//                 totalInvestment,
-//                 totalWithdrawal,
-//                 totalDeposit,
-//                 currentInvestment.amount
-//             } = data.data;
- 
-//             console.log(currentInvestment.amount)
-    
-//             totalDepoI.textContent = totalDeposit,
-//             totalInvestI.textContent = totalInvestment,
-//             totalWithI.textContent = totalWithdrawal,
-//             walletBalI.textContent = walletBalance,
-//             currentInvestI.textContent = currentInvestment.amount
-            
-            
-
-//         } catch (error) {
-//             // console.log(error)
-//             return error;
-//         }
-//     }else{
-//         redirectToLogin();
-//     }
-
-
-// }
-
-// window.onload = dashboard;
-
-
-const baseUrl = "/api/v1/m/dashboard";
-
-async function dashboard() {
-  if (!isAuthenticated()) {
+// Check authentication on page load
+document.addEventListener('DOMContentLoaded', function() {
+  if (!isLoggedIn()) {
     redirectToLogin();
     return;
   }
+  
+  // Load dashboard data immediately
+  loadDashboardData();
+  
+  // Refresh data every 5 minutes
+  setInterval(loadDashboardData, 60 * 60 * 1000);
+});
 
-  const accessToken = getCookie("accessToken");
-  const headers = {
-    'Content-Type': 'application/json',
-    'AccessToken': accessToken
-  };
-
+// Main dashboard data loader
+async function loadDashboardData() {
   try {
-    const response = await fetch(baseUrl, {
-      method: 'GET',
-      headers,
-      credentials: 'include',
-    });
-
-    if (!response.ok) throw new Error("Failed to fetch dashboard data");
-
+    
+    // Make authenticated request
+    const response = await authFetch('/api/v1/user/dashboard');
+    
+    // Handle redirect if auth failed
+    if (!response) return; 
+    
+    // Handle API errors
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to load dashboard data');
+    }
+    
+    // Update UI with data
     const { data } = await response.json();
-    const {
-      walletBalance,
-      totalInvestment,
-      totalWithdrawal,
-      totalDeposit,
-      currentInvestment
-    } = data;
-
-    // Update DOM elements
-    document.getElementById("accBalance").textContent = walletBalance;
-    document.getElementById("totInvest").textContent = totalInvestment;
-    document.getElementById("totalWith").textContent = totalWithdrawal;
-    document.getElementById("totDeposit").textContent = totalDeposit;
-    document.getElementById("currentInvest").textContent = currentInvestment?.amount || 0;
-
+    console.log(data)
+    updateDashboardUI(data);
+    
+    
   } catch (error) {
-    console.error("Dashboard error:", error.message);
+    console.log(error)
+    showError(error.message);
   }
 }
 
-window.addEventListener("load", dashboard);
+// Update all dashboard elements
+function updateDashboardUI(data) {
+  // Format currency values
+  const formatMoney = (amount) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount || 0);
+  };
+  
+  // Update balance displays
+  document.getElementById("username").textContent = data.username;
+  document.getElementById("accBalance").textContent = formatMoney(data.walletBalance);
+  document.getElementById("totInvest").textContent = formatMoney(data.totalInvestment);
+  document.getElementById("totalWith").textContent = formatMoney(data.totalWithdrawal);
+  document.getElementById("totDeposit").textContent = formatMoney(data.totalDeposit);
+  document.getElementById("currentInvest").textContent = formatMoney(data.currentInvestment?.amount || 0);
+  
+}
+
+// Show error message to user
+function showError(message) {
+  const errorElement = document.getElementById('errorMessage');
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    
+    // Auto-hide error after 7 seconds
+    setTimeout(() => {
+      errorElement.style.display = 'none';
+    }, 7000);
+  }
+}
+

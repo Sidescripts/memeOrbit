@@ -68,6 +68,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: true,
         },
+        refreshToken: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
         role: {
             type: DataTypes.ENUM,
             values: ["user", "admin"],
