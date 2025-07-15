@@ -1,6 +1,9 @@
 // "/deposit/fund-wallet"
 // "/history"
 // '/deposit/deposit-history/:id' 
+
+const baseUrl = "/api/v1/deposit/";
+
 document.addEventListener('DOMContentLoaded', function() {
     if (!isLoggedIn()) {
         redirectToLogin();
@@ -17,8 +20,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show loading state
     showLoading(tableBody);
   
+    const accessToken = getAccessToken();
+
     try {
-      const response = await authFetch("/api/v1/deposit/history");
+      const redsponse = await authFetch("/api/v1/deposit/history");
+      const response = await authFetch(`${baseUrl}history`);
+      
+      // const response = await fetch(`/api/v1/deposit/history`, {
+      //   method: 'GET',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${accessToken}`
+      //   },
+      //   credentials: "include"
+      // })
       
       if (!response) {
         // authFetch already handled redirect if needed
@@ -27,12 +42,13 @@ document.addEventListener('DOMContentLoaded', function() {
   
       if (!response.ok) {
         const errorData = await response.json();
+        console.log(errorData)
         throw new Error(errorData.message || 'Failed to load deposit history');
       }
   
-      const { data } = await response.json();
-      console.log(data)
-      updateDepositHistory(data);
+      const  {deposit}  = await response.json();
+      console.log(deposit)
+      updateDepositHistory(deposit);
   
     } catch (error) {
       console.error('Deposit history error:', error);
@@ -40,14 +56,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  function updateDepositHistory(data) {
+  function updateDepositHistory(deposit) {
     const tableBody = document.querySelector("#depositHistory tbody");
     if (!tableBody) return;
   
     // Clear previous content
     tableBody.innerHTML = '';
   
-    if (!data || !data.deposit || data.deposit.length === 0) {
+    if (!deposit || deposit.length === 0) {
       tableBody.innerHTML = `
         <tr>
           <td colspan="6">No deposit records found.</td>
@@ -57,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   
     // Render each deposit record
-    data.deposit.forEach(record => {
+    deposit.forEach(record => {
       const formattedDate = new Date(record.createdAt).toLocaleDateString();
       const amount = record.amount ? parseFloat(record.amount).toFixed(2) : '-';
       const euAmount = record.euEquAmount ? `$${parseFloat(record.euEquAmount).toFixed(2)}` : '-';

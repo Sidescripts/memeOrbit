@@ -30,7 +30,7 @@ async function loadDashboardData() {
     
     // Update UI with data
     const { data } = await response.json();
-    console.log(data)
+    // console.log(data)
     updateDashboardUI(data);
     
     

@@ -167,7 +167,7 @@
     }
 </style>
 
-<body onload="onloadWalletBalance()">
+<body>
 
 
     <!-- ======= Header ======= -->
@@ -461,86 +461,7 @@
 
     </script>
 
-    <!-- <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const selectElement = document.querySelector('select[name="method"]');
-            const appendDataContainer = document.querySelector('.appendData');
-
-            const additionalFields = `
-        <div class="col-md-12 mb-3 mt-3">
-            <label for="">Withdraw amount <span class="sp_text_danger">*</span></label>
-            <input type="text" name="amount" id="wthAmount" class="form-control amount" required="">
-            <p class="text-small color-change mb-0 mt-1"><span>Min amount 1000.00 usd</span> <span>Max amount 100,000.00 usd</span></p>
-        </div>
-        
-        <div class="col-md-12 mb-3">
-            <label for="">Final withdraw amount <span class="sp_text_danger">*</span></label>
-            <input type="text" name="final_amo" id="finalWthAmount" class="form-control final_amo" required="" readonly="">
-        </div>
-        <div class="col-md-12 mb-3">
-            <label for="">Wallet address <span class="sp_text_danger">*</span></label>
-            <input type="text" name="email" id="walletAdd" class="form-control" required="">
-        </div>
-        <div class="col-md-12">
-            <button id="submitBtn" onSubmit="withBtn()" class="btn main-btn plan-btn w-100" type="button">Withdraw now</button>
-        </div>
-    `;
-
-            selectElement.addEventListener('change', function () {
-                // Clear the container first
-                appendDataContainer.innerHTML = '';
-
-                // Check if a method is selected
-                if (this.value) {
-                    // Append the additional fields to the container
-                    appendDataContainer.innerHTML = additionalFields;
-                }
-            });
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const cardHeader = document.querySelector('.icard-header.clickable');
-            const cardBody = document.querySelector('.icard-body');
-
-            cardHeader.addEventListener('click', function () {
-                // Toggle the active class for the card-body
-                cardBody.classList.toggle('active');
-            });                                 
-        });
-
-    </script> -->
     <script src="../scripts/main.js"></script>
-    <script>
-        async function onloadWalletBalance() {
-            let walletBalI = document.getElementById("walletBal"); 
-           
-            if (await isLoggedIn()) {
-                
-                try {
-                    const response = await authFetch("/api/v1/m/dashboard");
-                    if(!response) return;
-                    if(!response.ok){
-                        const errorD = await response.json()
-                        console.log(errorD);
-                    }
-                    const {data} = await response.json();
-                    console.log(data.walletBalance)
-                    // const {
-                    //     walletBalance
-                    // } = data;
-
-                    walletBalI.textContent = data.walletBalance
-
-                }catch (error) {
-                    console.log(error)
-                    return error;
-                }
-            } else {
-                redirectToLogin();
-            }
-
-        }
-    </script>
     <script src="../scripts/withdrawal.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>

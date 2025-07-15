@@ -5,6 +5,7 @@ const PLAN_DURATIONS = {
   "boom plan": 72
 };
 
+// Initialize when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
   if (!isLoggedIn()) {
     redirectToLogin();
@@ -14,15 +15,15 @@ document.addEventListener('DOMContentLoaded', function() {
   initInvestmentForm();
 });
 
+// ====================== FORM INITIALIZATION ======================
 function initInvestmentForm() {
-  const appendDataContainer = document.querySelector(".appendData");
   const methodSelect = document.querySelector('select[name="method"]');
-
-  if (!appendDataContainer || !methodSelect) return;
+  if (!methodSelect) return;
 
   methodSelect.addEventListener("change", handlePlanSelection);
 }
 
+// ====================== PLAN SELECTION HANDLER ======================
 function handlePlanSelection(event) {
   const appendDataContainer = document.querySelector(".appendData");
   const selectedPlan = event.target.value;
@@ -33,77 +34,79 @@ function handlePlanSelection(event) {
   }
 
   appendDataContainer.innerHTML = getInvestmentFormFields();
-  setupInvestmentFormHandlers();
+  setupInvestmentFormHandlers(selectedPlan);
 }
 
+// ====================== FORM TEMPLATE ======================
 function getInvestmentFormFields() {
   return `
     <div class="col-md-12 mb-3 mt-3">
       <label for="amount">Amount <span class="sp_text_danger">*</span></label>
-      <input type="text" name="amount" id="amount" class="form-control amount" required>
+      <input type="number" name="amount" id="amount" class="form-control amount" required>
       <p class="text-small color-change mb-0 mt-1"></p>
     </div>
     <div class="col-md-12 mb-3">
-      <label for="duration">Duration <span class="sp_text_danger">*</span></label>
+      <label for="duration">Duration (Hours) <span class="sp_text_danger">*</span></label>
       <input type="text" name="duration" id="duration" class="form-control final_amo" readonly required>
     </div>
     <div class="col-md-12">
       <button id="submitBtn" class="btn main-btn plan-btn w-100" type="button">Proceed</button>
     </div>
-    <div id="errorMsg" class="col-md-12 mt-2"></div>
-    <div id="successMsg" class="col-md-12 mt-2"></div>
+    <!-- Feedback containers -->
+    <div id="errorContainer" class="alert alert-danger mt-3 d-none"></div>
+    <div id="successContainer" class="alert alert-success mt-3 d-none"></div>
   `;
 }
 
-function setupInvestmentFormHandlers() {
+// ====================== FORM EVENT HANDLERS ======================
+function setupInvestmentFormHandlers(selectedPlan) {
   const amountInput = document.getElementById("amount");
   const durationInput = document.getElementById("duration");
   const submitButton = document.getElementById("submitBtn");
-  const methodSelect = document.querySelector('select[name="method"]');
 
-  if (!amountInput || !durationInput || !submitButton || !methodSelect) return;
+  if (!amountInput || !durationInput || !submitButton) return;
 
+  // Auto-fill duration based on plan
+  durationInput.value = PLAN_DURATIONS[selectedPlan] || '';
+
+  // Real-time amount validation
   amountInput.addEventListener("input", () => {
-    const plan = methodSelect.value;
-    durationInput.value = PLAN_DURATIONS[plan] || '';
+    clearFeedback();
+    if (amountInput.value < 0) {
+      showError("Amount cannot be negative");
+    }
   });
 
-  submitButton.addEventListener("click", () => {
-    processInvestmentCreation();
+  // Form submission
+  submitButton.addEventListener("click", async () => {
+    clearFeedback();
+    try {
+      const amount = parseFloat(amountInput.value);
+      await processInvestmentCreation(selectedPlan, amount);
+    } catch (error) {
+      showError(error.message);
+    }
   });
 }
 
-async function processInvestmentCreation() {
-  const amountInput = document.getElementById("amount");
-  const methodSelect = document.querySelector('select[name="method"]');
+// ====================== INVESTMENT PROCESSING ======================
+async function processInvestmentCreation(plan, amount) {
+  validateInvestmentInput(plan, amount);
   
-  if (!amountInput || !methodSelect) return;
-
-  const amount = parseFloat(amountInput.value.trim()) || 0;
-  const plan = methodSelect.value;
-
   try {
-    validateInvestmentInput(plan, amount);
     const result = await createInvestment(plan, amount);
     handleInvestmentSuccess(result);
   } catch (error) {
-    console.log(error)
-    handleInvestmentError(error);
+    console.error("Investment Error:", error);
+    throw error; // Re-throw for outer catch
   }
 }
 
 function validateInvestmentInput(plan, amount) {
-  if (!plan || !amount) {
-    throw new Error("All fields are required");
-  }
-
-  if (amount <= 0) {
-    throw new Error("Amount must be greater than zero");
-  }
-
-  if (!PLAN_DURATIONS[plan]) {
-    throw new Error("Invalid investment plan selected");
-  }
+  if (!plan) throw new Error("Please select an investment plan");
+  if (!amount || isNaN(amount)) throw new Error("Please enter a valid amount");
+  if (amount <= 0) throw new Error("Amount must be greater than zero");
+  if (!PLAN_DURATIONS[plan]) throw new Error("Invalid investment plan selected");
 }
 
 async function createInvestment(plan, amount) {
@@ -117,50 +120,61 @@ async function createInvestment(plan, amount) {
       'Authorization': `Bearer ${accessToken}`,
       'X-CSRF-TOKEN': csrfToken
     },
-    credentials: "include",
     body: JSON.stringify({ plans: plan, amount })
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || "Failed to create investment");
+    throw new Error(errorData.message || "Failed to create investment. Please try again.");
   }
 
   return await response.json();
 }
 
+// ====================== FEEDBACK HANDLERS ======================
 function handleInvestmentSuccess(result) {
-  showToast({
-    type: 'success',
-    title: 'Success',
-    message: result.message || "Investment created successfully"
-  });
+  showSuccess(result.message || "Investment created successfully!");
   
+  // Redirect after 2 seconds
   setTimeout(() => {
     window.location.href = "../components/invest-log.html";
-  }, 1500);
+  }, 2000);
 }
 
-function handleInvestmentError(error) {
-  console.error('Investment error:', error);
-  showToast({
-    type: 'error',
-    title: 'Error',
-    message:  error.message || "Failed to create investment"
-  });
-}
-
-// Reusable toast notification
-function showToast({ type, title, message }) {
-  const toastOptions = {
-      title: title,
-      message: message,
-      position: 'topRight'
-  };
+function showError(message) {
+  const errorContainer = document.getElementById("errorContainer");
+  if (!errorContainer) return;
   
-  if (type === 'success') {
-      iziToast.success(toastOptions);
-  } else {
-      iziToast.error(toastOptions);
-  }
+  errorContainer.textContent = message;
+  errorContainer.classList.remove("d-none");
+}
+
+function showSuccess(message) {
+  const successContainer = document.getElementById("successContainer");
+  if (!successContainer) return;
+  
+  successContainer.textContent = message;
+  successContainer.classList.remove("d-none");
+}
+
+function clearFeedback() {
+  const errorContainer = document.getElementById("errorContainer");
+  const successContainer = document.getElementById("successContainer");
+  
+  if (errorContainer) errorContainer.classList.add("d-none");
+  if (successContainer) successContainer.classList.add("d-none");
+}
+
+// ====================== UTILITY FUNCTIONS ======================
+function isLoggedIn() {
+  // Implement your auth check
+  return localStorage.getItem("accessToken");
+}
+
+function redirectToLogin() {
+  window.location.href = "/login";
+}
+
+function getAccessToken() {
+  return localStorage.getItem("accessToken");
 }

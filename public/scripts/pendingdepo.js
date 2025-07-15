@@ -27,7 +27,7 @@ async function loadPendingDeposits() {
 
         const { deposit } = await response.json();
         updatePendingDepositsTable(deposit);
-
+        // console.log(deposit)
     } catch (error) {
         console.error('Pending deposits error:', error);
         showError(tableBody, error.message || 'Failed to load pending deposits');

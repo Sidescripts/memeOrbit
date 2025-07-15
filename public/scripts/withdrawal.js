@@ -9,8 +9,27 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
+  loadWalletBalance();
   initWithdrawalForm();
 });
+
+async function loadWalletBalance(){
+  try {
+    const response = await authFetch('/api/v1/user/dashboard');
+    if(!response) return;
+    if(!response.ok){
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Failed to load wallet balance`)
+    }
+    const {data} = await response.json();
+    console.log(data)
+    document.getElementById("walletBal").textContent = data.walletBalance
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 
 function initWithdrawalForm() {
   const methodSelect = document.querySelector('select[name="method"]');

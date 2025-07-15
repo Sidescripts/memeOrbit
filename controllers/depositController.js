@@ -77,7 +77,7 @@ const fundWallet = async (req, res) => {
             // return res.status(400).json({ error: "Minimum deposit is 300 USDT" });
         }
 
-        const trxnId = `WD-${Date.now()}`;
+        const trxnId = `DP-${Date.now()}`;
         const deposit = await createdeposit({
             userId, 
             method, 
