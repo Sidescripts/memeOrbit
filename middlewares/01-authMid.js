@@ -48,7 +48,7 @@ const authMiddleware = async (req, res, next) => {
         code: 'TOKEN_INVALID'
       });
     } else {
-      return res.status(500).json({ 
+      return res.status(401).json({ 
         error: 'Token verification failed',
         code: 'TOKEN_VERIFICATION_FAILED',
         details: error.message

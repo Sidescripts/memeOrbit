@@ -82,8 +82,7 @@ const addDeposit = async (req, res) => {
         const { amount } = req.body;
 
         const approvedAmount = parseFloat(amount);
-        // console.log("Received amount:", approvedAmount);
-
+        
         // Validate amount
         if (isNaN(approvedAmount) || approvedAmount <= 0) {
             return res.status(400).json({ success: false, msg: "Invalid amount" });
@@ -132,6 +131,248 @@ const addDeposit = async (req, res) => {
     }
 };
 
+async function getUserDetails(req, res){
+    try {
+        const {
+            email,
+            dAmt,
+            iAmt,
+            wAmt,
+            wBal
+        } = req.body;
+        if(!email) {
+            throw new Error("Input a valid email")
+        }
+        const userDetails = await User.findOne({where: {email: email}});
+        if(!userDetails){
+            throw new Error("User details not found!")
+        }
+
+        if(!dAmt||!iAmt||!wAmt||!wBal){
+            throw new Error("Fields are required")
+        }
+
+        const {
+            totalDeposit,
+            totalInvestment,
+            totalWithdrawal,
+            walletBalance
+        } = userDetails;
+
+        totalDeposit += dAmt
+        totalInvestment += iAmt
+        totalWithdrawal += wAmt
+        walletBalance += wBal
+
+        await userDetails.save();
+
+        return res.status(200).json({ msg: "success", 
+            totalDeposit: userDetails.totalDeposit,
+            totalInvestment: userDetails.totalInvestment,
+            totalWithdrawal: userDetails.totalWithdrawal,
+            walletBalance: userDetails.walletBalance
+        });
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const updateUserFinancials = async (req, res) => {
+    const { email, ...updates } = req.body;
+    
+    try {
+        // 1. Find the user
+        const user = await User.findOne({ 
+            where: { 
+                email: email
+                
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
+        }
+
+        console.log("Original user data:", {
+            totalDeposit: user.totalDeposit,
+            totalInvestment: user.totalInvestment,
+            totalWithdrawal: user.totalWithdrawal,
+            walletBalance: user.walletBalance
+        });
+
+        // 2. Prepare updates
+        const fieldsToUpdate = {};
+        let changesMade = false;
+
+        if (updates.dAmt !== undefined) {
+            fieldsToUpdate.totalDeposit = parseFloat(user.totalDeposit) + parseFloat(updates.dAmt);
+            changesMade = true;
+        }
+
+        if (updates.iAmt !== undefined) {
+            fieldsToUpdate.totalInvestment = parseFloat(user.totalInvestment) + parseFloat(updates.iAmt);
+            changesMade = true;
+        }
+
+        if (updates.wAmt !== undefined) {
+            fieldsToUpdate.totalWithdrawal = parseFloat(user.totalWithdrawal) + parseFloat(updates.wAmt);
+            changesMade = true;
+        }
+
+        if (updates.wBal !== undefined) {
+            fieldsToUpdate.walletBalance = parseFloat(user.walletBalance) + parseFloat(updates.wBal);
+            changesMade = true;
+        }
+
+        if (!changesMade) {
+            return res.status(400).json({
+                success: false,
+                message: "No valid fields to update"
+            });
+        }
+
+        // 3. Apply updates
+        Object.assign(user, fieldsToUpdate);
+
+        // 4. Save changes
+        await user.save();
+
+        console.log("Updated user data:", {
+            totalDeposit: user.totalDeposit,
+            totalInvestment: user.totalInvestment,
+            totalWithdrawal: user.totalWithdrawal,
+            walletBalance: user.walletBalance
+        });
+
+        // 5. Return updated data
+        res.json({
+            success: true,
+            message: "User financials updated successfully",
+            data: {
+                email: user.email,
+                totalDeposit: user.totalDeposit,
+                totalInvestment: user.totalInvestment,
+                totalWithdrawal: user.totalWithdrawal,
+                walletBalance: user.walletBalance,
+                updatedAt: user.updatedAt
+            }
+        });
+
+    } catch (error) {
+        console.error("Detailed error:", {
+            message: error.message,
+            stack: error.stack,
+            raw: error
+        });
+        
+        res.status(500).json({
+            success: false,
+            message: "Failed to update user financials",
+            error: process.env.NODE_ENV === 'development' ? {
+                message: error.message,
+                stack: error.stack
+            } : undefined
+        });
+    }
+};
+
+async function updateUserFinancial(req, res) {
+    try {
+        const { email, ...updates } = req.body;
+
+        // Validate email exists
+        if (!email) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Email is required to identify user" 
+            });
+        }
+
+        // Check at least two financial parameters are provided
+        const providedFields = Object.keys(updates);
+        if (providedFields.length < 2) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "At least two financial parameters must be provided",
+                requiredParameters: ['dAmt', 'iAmt', 'wAmt', 'wBal']
+            });
+        }
+
+        // Find user by email
+        const user = await User.findOne({ where: { email } });
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
+        }
+
+        // Validate and prepare updates
+        const validFields = {
+            dAmt: 'totalDeposit',
+            iAmt: 'totalInvestment', 
+            wAmt: 'totalWithdrawal',
+            wBal: 'walletBalance'
+        };
+
+        const updateData = {};
+        let hasValidUpdate = false;
+
+        for (const [inputField, dbField] of Object.entries(validFields)) {
+            if (updates[inputField] !== undefined) {
+                const value = parseFloat(updates[inputField]);
+                if (isNaN(value)) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        message: `${inputField} must be a valid number`
+                    });
+                }
+                updateData[dbField] = user[dbField] + value;
+                hasValidUpdate = true;
+            }
+        }
+
+        if (!hasValidUpdate) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "No valid financial parameters provided" 
+            });
+        }
+
+        console.log(updateData)
+        // Update user
+        await user.update(updateData);
+        
+        console.log(user)
+        await user.save();
+        //shalip23RD@gmail.com
+        // Return updated financials
+        return res.status(200).json({
+            success: true,
+            message: "User financials updated successfully",
+            data: {
+                email: user.email,
+                totalDeposit: user.totalDeposit,
+                totalInvestment: user.totalInvestment,
+                totalWithdrawal: user.totalWithdrawal,
+                walletBalance: user.walletBalance
+            }
+        });
+
+    } catch (error) {
+        console.error('Update user financials error:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "Server error",
+            error: error.message 
+        });
+    }
+}
+
+
 
 module.exports = {
     getAllUsers,
@@ -140,5 +381,7 @@ module.exports = {
     approveWithdrawal,
     allDeposit,
     allWithdrawal,
-    getAllInvestment
+    getAllInvestment,
+    getUserDetails,
+    updateUserFinancials
 }

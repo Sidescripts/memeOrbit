@@ -33,7 +33,13 @@ function handlePlanSelection(event) {
     return;
   }
 
-  appendDataContainer.innerHTML = getInvestmentFormFields();
+  appendDataContainer.innerHTML = `
+    <!-- Error message container at TOP of form -->
+    <div id="formFeedback" class="mb-3"></div>
+    
+    ${getInvestmentFormFields()}
+  `;
+  
   setupInvestmentFormHandlers(selectedPlan);
 }
 
@@ -43,7 +49,6 @@ function getInvestmentFormFields() {
     <div class="col-md-12 mb-3 mt-3">
       <label for="amount">Amount <span class="sp_text_danger">*</span></label>
       <input type="number" name="amount" id="amount" class="form-control amount" required>
-      <p class="text-small color-change mb-0 mt-1"></p>
     </div>
     <div class="col-md-12 mb-3">
       <label for="duration">Duration (Hours) <span class="sp_text_danger">*</span></label>
@@ -52,9 +57,6 @@ function getInvestmentFormFields() {
     <div class="col-md-12">
       <button id="submitBtn" class="btn main-btn plan-btn w-100" type="button">Proceed</button>
     </div>
-    <!-- Feedback containers -->
-    <div id="errorContainer" class="alert alert-danger mt-3 d-none"></div>
-    <div id="successContainer" class="alert alert-success mt-3 d-none"></div>
   `;
 }
 
@@ -69,22 +71,20 @@ function setupInvestmentFormHandlers(selectedPlan) {
   // Auto-fill duration based on plan
   durationInput.value = PLAN_DURATIONS[selectedPlan] || '';
 
-  // Real-time amount validation
-  amountInput.addEventListener("input", () => {
-    clearFeedback();
-    if (amountInput.value < 0) {
-      showError("Amount cannot be negative");
-    }
-  });
-
   // Form submission
   submitButton.addEventListener("click", async () => {
     clearFeedback();
+    submitButton.disabled = true;
+    submitButton.textContent = "Processing...";
+    
     try {
       const amount = parseFloat(amountInput.value);
       await processInvestmentCreation(selectedPlan, amount);
     } catch (error) {
       showError(error.message);
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "Proceed";
     }
   });
 }
@@ -95,10 +95,10 @@ async function processInvestmentCreation(plan, amount) {
   
   try {
     const result = await createInvestment(plan, amount);
-    handleInvestmentSuccess(result);
+    showSuccessModal(result.message || "Investment created successfully!");
   } catch (error) {
-    console.error("Investment Error:", error);
-    throw error; // Re-throw for outer catch
+    console.error(error);
+    throw error;
   }
 }
 
@@ -123,51 +123,94 @@ async function createInvestment(plan, amount) {
     body: JSON.stringify({ plans: plan, amount })
   });
 
+  const responseData = await response.json();
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || "Failed to create investment. Please try again.");
+    throw new Error(responseData.message || responseData.error || "Failed to create investment");
   }
 
-  return await response.json();
+  return responseData;
 }
 
-// ====================== FEEDBACK HANDLERS ======================
-function handleInvestmentSuccess(result) {
-  showSuccess(result.message || "Investment created successfully!");
+// ====================== MODAL FEEDBACK SYSTEM ======================
+function showErrorModal(message) {
+  // Create modal if it doesn't exist
+  if (!document.getElementById("errorModal")) {
+    const modalHTML = `
+      <div id="errorModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal('errorModal')">&times;</span>
+          <h3 class="text-danger">Error</h3>
+          <p>${message}</p>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  } else {
+    document.querySelector("#errorModal p").textContent = message;
+  }
+  
+  document.getElementById("errorModal").style.display = "block";
+}
+
+function showSuccessModal(message) {
+  // Create modal if it doesn't exist
+  if (!document.getElementById("successModal")) {
+    const modalHTML = `
+      <div id="successModal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal('successModal')">&times;</span>
+          <h3 class="text-success">Success</h3>
+          <p>${message}</p>
+          <button onclick="closeModal('successModal')" class="btn btn-primary">OK</button>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  } else {
+    document.querySelector("#successModal p").textContent = message;
+  }
+  
+  document.getElementById("successModal").style.display = "block";
   
   // Redirect after 2 seconds
   setTimeout(() => {
+    closeModal('successModal');
     window.location.href = "../components/invest-log.html";
   }, 2000);
 }
 
-function showError(message) {
-  const errorContainer = document.getElementById("errorContainer");
-  if (!errorContainer) return;
-  
-  errorContainer.textContent = message;
-  errorContainer.classList.remove("d-none");
+function closeModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = "none";
 }
 
-function showSuccess(message) {
-  const successContainer = document.getElementById("successContainer");
-  if (!successContainer) return;
+// ====================== INLINE FEEDBACK (Alternative) ======================
+function showError(message) {
+  const feedbackContainer = document.getElementById("formFeedback");
+  if (!feedbackContainer) {
+    showErrorModal(message); // Fallback to modal
+    return;
+  }
   
-  successContainer.textContent = message;
-  successContainer.classList.remove("d-none");
+  feedbackContainer.innerHTML = `
+    <div class="alert alert-danger alert-dismissible fade show">
+      ${message}
+      <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    </div>
+  `;
+  
+  // Scroll to top of form
+  feedbackContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function clearFeedback() {
-  const errorContainer = document.getElementById("errorContainer");
-  const successContainer = document.getElementById("successContainer");
-  
-  if (errorContainer) errorContainer.classList.add("d-none");
-  if (successContainer) successContainer.classList.add("d-none");
+  const feedbackContainer = document.getElementById("formFeedback");
+  if (feedbackContainer) feedbackContainer.innerHTML = "";
 }
 
 // ====================== UTILITY FUNCTIONS ======================
 function isLoggedIn() {
-  // Implement your auth check
   return localStorage.getItem("accessToken");
 }
 
@@ -178,3 +221,6 @@ function redirectToLogin() {
 function getAccessToken() {
   return localStorage.getItem("accessToken");
 }
+
+// Make functions available globally for HTML onclick
+window.closeModal = closeModal;

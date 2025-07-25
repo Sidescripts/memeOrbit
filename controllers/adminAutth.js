@@ -40,6 +40,7 @@ const signup = async (req, res) => {
 };
 
 async function login(req,res){
+    try {
     const {email,password} = req.body;
 
     if(!email||!password){
@@ -72,6 +73,9 @@ async function login(req,res){
         accessToken,
     });
 
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 module.exports = {

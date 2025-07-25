@@ -7,7 +7,9 @@ const {
     allDeposit,
     allWithdrawal,
     addDeposit,
-    getAllInvestment
+    getAllInvestment,
+    getUserDetails,
+    updateUserFinancials
 } = require("../controllers/adminMainController");
 const  {adminUpdateInvestment} = require("../controllers/investmentController");
 const {authMiddleware} = require("../middlewares/adminAuthMid");
@@ -24,9 +26,8 @@ router.patch("/approve-deposit/:id",  authMiddleware,approveDeposit);
 router.patch("/add-deposit/:id",  authMiddleware,addDeposit);
 router.patch("/approve-wth/:id",  authMiddleware,approveWithdrawal);
 router.patch('/update-investment/:investmentId', authMiddleware, adminUpdateInvestment);
-// router.patch("/add-deposit/:id",  authMiddleware,(req,res) =>{
-//     console.log("this might be working")
-// });
+router.post("/get-user-details", authMiddleware, getUserDetails);
+router.post("/update-finance", authMiddleware, updateUserFinancials);
 
 
 module.exports = router;

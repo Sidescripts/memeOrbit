@@ -51,17 +51,18 @@ async function createInvestment(req,res) {
             default:
                 return res.status(400).json({ message: "Invalid plan selected." });
         }
-        // console.log(duration)
         
         const investmentDate = new Date();
-        // console.log(investmentDate)
         
         // // Deduct investment amount from walletBalance
         if (amount > user.walletBalance) {
-            throw new Error("Insufficient Fund");
+            return res.status(400).json({ 
+                success: false,
+                message: "Insufficient funds for this investment" 
+            });
+            // throw new Error("Insufficient Fund");
         }
-
-
+  
         user.walletBalance -= amount,
         user.totalInvestment += amount
 
@@ -85,64 +86,6 @@ async function createInvestment(req,res) {
     }    
 
 }
-
-const updateReturnOnInvestment = async(req,res) =>{
-    const userId = req.user;
-    const investments =  await findAllOngoingInvestment();
-    const user = await findUserById({userId});
-
-    for (const investment of investments){
-        const {investmentDate, amount, plans} = investment;
-
-        // Determine the duration based on the plan
-        let duration;
-        switch (plans.toLowerCase()) {
-            case "basic":
-                duration = 24; // 24 hours
-                break;
-            case "moon":
-                duration = 48; // 48 hours
-                break;
-            case "boom":
-                duration = 72; // 72 hours
-                break;
-            default:
-                console.error(`Invalid plan '${plans}' for investment ID ${investment.id}`);
-                continue; // Skip invalid plans
-        }
-
-        // check if duration has expired
-        const expirationTime = investment.investmentDate.getTime() + duration * 60 * 60 * 1000;
-        const currentTime = Date.now();
-
-        if(currentTime >= expirationTime){
-            const roi = 5 * amount;
-
-            await investment.update({
-                status: "completed",
-                returnOnInvestment: roi,
-            });
-
-            //
-            if(user){
-                await user.update({
-                    walletBalance: user.walletBalance + roi,
-                });
-
-            }else{
-                return res.status(404).json({msg: `User with ID ${userId} not found for investment ID ${investment.id}`})
-            }
-        }
-    }
-}
-
-
-// Run every hour
-nodeCron.schedule("0 * * * *", async () => {
-  console.log("Running ROI update...");
-  await updateReturnOnInvestment();
-});
-
 
 // investment history
 async function getAllInvestment(req,res) {
@@ -189,28 +132,22 @@ async function getOneInvestment(req,res) {
     }
 }
 
-
 const adminUpdateInvestment = async (req, res) => {
-    
-    const  {investmentId}  = req.params;
+    const { investmentId } = req.params;
     
     try {
+        const investment = await Investment.findOne({ where: { id: investmentId } });
         
-        const i = await Investment.findOne({ where: { id:  investmentId} });
-        
-        // console.log(i)
-
-        if (!i) {
+        if (!investment) {
             return res.status(404).json({ msg: `Investment with ID ${investmentId} not found` });
         }
 
-        if (i.status !== 'ongoing') {
+        if (investment.status !== 'ongoing') {
             return res.status(400).json({ msg: 'Investment is already completed' });
         }
         
-        const { investmentDate, amount, plans, userId } = i;
-        // console.log(investmentDate, amount, plans, userId)
-
+        const { investmentDate, amount, plans, userId } = investment;
+        
         if (!investmentDate) {
             return res.status(400).json({ msg: 'Investment date is missing' });
         }
@@ -219,17 +156,20 @@ const adminUpdateInvestment = async (req, res) => {
             return res.status(400).json({ msg: 'Incorrect UserId' });
         }
 
-        // Set duration based on plan
-        let durationHours;
+        // Set duration and ROI multiplier based on plan
+        let durationHours, roiMultiplier;
         switch (plans.toLowerCase()) {
             case 'basic plan':
                 durationHours = 24;
+                roiMultiplier = 5; // 5x ROI for basic plan
                 break;
             case 'moon plan':
                 durationHours = 48;
+                roiMultiplier = 10; // 10x ROI for moon plan
                 break;
             case 'boom plan':
                 durationHours = 72;
+                roiMultiplier = 20; // 20x ROI for boom plan
                 break;
             default:
                 return res.status(400).json({ msg: `Invalid plan: ${plans}` });
@@ -242,33 +182,37 @@ const adminUpdateInvestment = async (req, res) => {
             return res.status(400).json({ msg: 'Investment duration has not been completed yet' });
         }
 
-        
-        let user = await User.findOne({ where: { id: userId } });
+        const user = await User.findOne({ where: { id: userId } });
 
         if (!user) {
             return res.status(404).json({ msg: `User with ID ${userId} not found` });
         }
-        // console.log(user)
-        const roi = parseFloat(amount) * 5;
+      
+        const currentBalance = parseFloat(user.walletBalance) || 0;
+        const roi = parseFloat(amount) * roiMultiplier;
 
-        i.status = 'completed',
-        i.returnOnInvestment += roi
-        await i.save();
+        // Update investment
+        investment.status = 'completed';
+        investment.returnOnInvestment = roi; // Store the calculated ROI
+        await investment.save();
 
-        user.walletBalance += roi
+        // Update user wallet
+        user.walletBalance = currentBalance += roi;
+        // user.walletBalance = parseFloat((currentBalance + roi).toFixed(2));
         await user.save();
         
         return res.status(200).json({
             msg: 'Investment successfully updated',
             updatedInvestment: {
                 email: user.email,
-                investmentId: i.investmentId,
-                status: i.status,
-                returnOnInvestment: i.returnOnInvestment,
-                duration: i.duration,
-                plan: i.plan,
-                amount: i.amount,
-                date: investmentDate
+                investmentId: investment.investmentId,
+                status: investment.status,
+                returnOnInvestment: investment.returnOnInvestment,
+                duration: durationHours,
+                plan: investment.plans,
+                amount: investment.amount,
+                date: investmentDate,
+                roiMultiplier: roiMultiplier // Include multiplier in response for transparency
             }
         });
 
@@ -278,57 +222,9 @@ const adminUpdateInvestment = async (req, res) => {
     }
 };
 
-
-// Configuration object for investment plans and durations
-const PLAN_CONFIG = {
-  'basic plan': { durationHours: 24, name: 'Basic Plan' },
-  'moon plan': { durationHours: 48, name: 'Moon Plan' },
-  'boom plan': { durationHours: 72, name: 'Boom Plan' },
-};
-
-// Constants
-const ROI_MULTIPLIER = 5; // 500% return on investment
-const STATUS_ONGOING = 'ongoing';
-const STATUS_COMPLETED = 'completed';
-
-// Helper functions
-const getPlanConfig = (plan) => {
-  const normalizedPlan = plan?.toLowerCase();
-  return PLAN_CONFIG[normalizedPlan] || null;
-};
-
-const calculateExpirationTime = (investmentDate, durationHours) => {
-  if (!investmentDate) throw new Error('Investment date is missing');
-  return new Date(investmentDate).getTime() + durationHours * 60 * 60 * 1000;
-};
-
-const validateInvestment = (investment) => {
-  if (!investment) {
-    throw new Error('Investment not found');
-  }
-  if (investment.status !== STATUS_ONGOING) {
-    throw new Error('Investment is already completed');
-  }
-};
-
-const validateUser = (user) => {
-  if (!user) {
-    throw new Error('User not found');
-  }
-};
-
-const calculateRoi = (amount) => {
-  const parsedAmount = parseFloat(amount);
-  if (isNaN(parsedAmount) || parsedAmount <= 0) {
-    throw new Error('Invalid investment amount');
-  }
-  return parsedAmount * ROI_MULTIPLIER;
-};
-
 module.exports = {
     createInvestment,
     getAllInvestment,
     getOneInvestment,
-    updateReturnOnInvestment,   
     adminUpdateInvestment
 }

@@ -6,15 +6,40 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    createModalStructure(); // Initialize modal HTML structure
     loadPendingDeposits();
 });
+
+// Create modal HTML structure (reuse if already exists)
+function createModalStructure() {
+    if (document.getElementById('depositModal')) return;
+    
+    const modalHTML = `
+    <div id="depositModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Deposit Details</h3>
+            <div id="modalDepositContent"></div>
+        </div>
+    </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Add event listeners for modal
+    document.querySelector('.close-modal').addEventListener('click', closeDepositModal);
+    document.getElementById('depositModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('depositModal')) {
+            closeDepositModal();
+        }
+    });
+}
 
 async function loadPendingDeposits() {
     const tableBody = document.querySelector("#depositHistory tbody");
     if (!tableBody) return;
 
     showLoading(tableBody);
-
+    
     try {
         const response = await authFetch(`${baseUrl}history`);
         
@@ -27,7 +52,7 @@ async function loadPendingDeposits() {
 
         const { deposit } = await response.json();
         updatePendingDepositsTable(deposit);
-        // console.log(deposit)
+
     } catch (error) {
         console.error('Pending deposits error:', error);
         showError(tableBody, error.message || 'Failed to load pending deposits');
@@ -67,17 +92,75 @@ function updatePendingDepositsTable(deposits) {
         const trxnId = record.trxnId || '-';
         const method = record.method || '-';
 
-        tableBody.insertAdjacentHTML('beforeend', `
-            <tr>
-                <td>${formattedDate}</td>
-                <td>${trxnId}</td>
-                <td>${method}</td>
-                <td>${amount}</td>
-                <td>${euAmount}</td>
-                <td class="status-pending">Pending</td>
-            </tr>
-        `);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td>${trxnId}</td>
+            <td>${method}</td>
+            <td>${amount}</td>
+            <td>${euAmount}</td>
+            <td class="status-pending">Pending</td>
+        `;
+        
+        // Add click handler to show modal
+        row.addEventListener('click', () => showDepositDetails(record));
+        tableBody.appendChild(row);
     });
+}
+
+function showDepositDetails(deposit) {
+    const modal = document.getElementById('depositModal');
+    const modalContent = document.getElementById('modalDepositContent');
+    
+    if (!modal || !modalContent) return;
+    
+    const formattedDate = new Date(deposit.createdAt).toLocaleString();
+    const amount = deposit.amount ? parseFloat(deposit.amount).toFixed(2) : '-';
+    const euAmount = deposit.euEquAmount ? `$${parseFloat(deposit.euEquAmount).toFixed(2)}` : '-';
+    
+    modalContent.innerHTML = `
+        <div class="detail-row">
+            <span class="detail-label">Date:</span>
+            <span class="detail-value">${formattedDate}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Transaction ID:</span>
+            <span class="detail-value">${deposit.trxnId || '-'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Method:</span>
+            <span class="detail-value">${deposit.method || '-'}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Amount:</span>
+            <span class="detail-value">${amount}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Equivalent USD:</span>
+            <span class="detail-value">${euAmount}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value status-pending">Pending</span>
+        </div>
+        ${deposit.note ? `
+        <div class="detail-row">
+            <span class="detail-label">Note:</span>
+            <span class="detail-value">${deposit.note}</span>
+        </div>` : ''}
+        ${deposit.pendingSince ? `
+        <div class="detail-row">
+            <span class="detail-label">Pending Since:</span>
+            <span class="detail-value">${new Date(deposit.pendingSince).toLocaleString()}</span>
+        </div>` : ''}
+    `;
+    
+    modal.style.display = 'block';
+}
+
+function closeDepositModal() {
+    const modal = document.getElementById('depositModal');
+    if (modal) modal.style.display = 'none';
 }
 
 // Reusable UI functions (shared with other components)
@@ -101,4 +184,13 @@ function showError(container, message) {
             </td>
         </tr>
     `;
+}
+
+// Utility functions
+function isLoggedIn() {
+    return localStorage.getItem("accessToken");
+}
+
+function redirectToLogin() {
+    window.location.href = "/login";
 }
